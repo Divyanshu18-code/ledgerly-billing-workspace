@@ -20,6 +20,81 @@ Ledgerly is a premium, multi-tenant Cloud-Based Billing and Finance Workspace de
 
 ---
 
+## 📐 System Architecture Diagrams
+
+### 1. Database Entity-Relationship Diagram (ERD)
+The following schema models Ledgerly's relational structures and database entities:
+
+```mermaid
+erDiagram
+    User ||--o{ WorkspaceMember : belongs_to
+    Workspace ||--o{ WorkspaceMember : belongs_to
+    Workspace ||--o{ Client : owns
+    Workspace ||--o{ Product : owns
+    Workspace ||--o{ Invoice : owns
+    Workspace ||--o{ Quotation : owns
+    Workspace ||--o{ Expense : owns
+    Workspace ||--o{ TaxRate : owns
+    Workspace ||--o{ AuditLog : tracks
+    User ||--o{ AuditLog : performs
+    Client ||--o{ Invoice : billed_to
+    Client ||--o{ Quotation : offered_to
+    Invoice ||--|{ InvoiceItem : contains
+    Product ||--o{ InvoiceItem : linked_to
+    Quotation ||--|{ QuotationItem : contains
+    Product ||--o{ QuotationItem : linked_to
+    Invoice ||--o{ Payment : receives
+```
+
+### 2. Password Reset Lifecycle Sequence
+The password reset lifecycle handles token generation, encryption, hashing, and database persistence:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as User Browser
+    participant API as Express Router
+    participant Service as AuthService
+    participant DB as PostgreSQL
+
+    Note over Client, DB: Forgot Password Flow
+    Client->>API: POST /auth/forgot-password {email}
+    API->>Service: initiatePasswordReset(email)
+    Service->>DB: Find user, update resetToken & resetTokenExp
+    DB-->>Service: Token saved
+    Service-->>Client: Return 200 OK (Email dispatched mock)
+    
+    Note over Client, DB: Reset Password Flow
+    Client->>API: POST /auth/reset-password {token, newPassword}
+    API->>Service: resetPassword(token, newPassword)
+    Service->>DB: Find user where token matches & not expired
+    Service->>Service: Hash newPassword via bcrypt
+    Service->>DB: Update passwordHash, clear resetToken variables
+    DB-->>Service: Password updated successfully
+    Service-->>Client: Return 200 OK
+```
+
+### 3. Verification & RBAC Authorization Pipeline
+This execution pipeline checks user sessions, workspace memberships, and verifies roles privileges:
+
+```mermaid
+graph TD
+    A[Incoming Request] --> B[requireAuth Middleware]
+    B -->|Check JWT Token| C{Valid Token?}
+    C -->|No| D[401 Unauthorized]
+    C -->|Yes| E{x-workspace-id header present?}
+    E -->|No| F[400 Bad Request]
+    E -->|Yes| G{User is member of Workspace?}
+    G -->|No| H[403 Forbidden]
+    G -->|Yes| I[Attach req.user and req.workspaceId]
+    I --> J[checkRole Middleware]
+    J --> K{User role matches route requirements?}
+    K -->|No| L[403 Forbidden]
+    K -->|Yes| M[Route Controller Executes]
+```
+
+---
+
 ## 📂 Project Directory Structure
 
 ```
