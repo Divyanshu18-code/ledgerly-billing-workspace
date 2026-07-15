@@ -53,6 +53,12 @@ export class AuthRepository {
       data,
     });
   }
+
+  async findByResetToken(token: string): Promise<User | null> {
+    return prisma.user.findFirst({
+      where: { resetToken: token },
+    });
+  }
 }
 
 export const authRepository = new AuthRepository();

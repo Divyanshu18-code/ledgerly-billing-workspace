@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { authRepository } from './repositories/auth.repository';
 import { ApiError } from '~/utils/errors';
 import { prisma } from '~/config/db';
@@ -100,6 +101,38 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async forgotPassword(email: string): Promise<string> {
+    const user = await authRepository.findByEmail(email);
+    if (!user) {
+      throw ApiError.notFound('User with this email does not exist');
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExp = new Date(Date.now() + 3600000); // 1 hour expiry
+
+    await authRepository.updateUser(user.id, {
+      resetToken,
+      resetTokenExp,
+    });
+
+    return resetToken;
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const user = await authRepository.findByResetToken(token);
+    if (!user || !user.resetTokenExp || user.resetTokenExp < new Date()) {
+      throw ApiError.badRequest('Password reset token is invalid or has expired');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await authRepository.updateUser(user.id, {
+      passwordHash,
+      resetToken: null,
+      resetTokenExp: null,
+    });
   }
 }
 

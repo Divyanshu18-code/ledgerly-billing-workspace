@@ -16,6 +16,8 @@ model User {
   firstName        String
   lastName         String
   isVerified       Boolean           @default(false)
+  resetToken       String?
+  resetTokenExp    DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   workspaceMembers WorkspaceMember[]
