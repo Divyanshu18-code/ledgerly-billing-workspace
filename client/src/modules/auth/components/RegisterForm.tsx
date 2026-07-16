@@ -16,7 +16,7 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
-  onSuccess: () => void;
+  onSuccess: (data: any) => void;
   onNavigateToLogin: () => void;
 }
 
@@ -37,8 +37,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onNavigat
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
-      await registerUser(data);
-      onSuccess();
+      const result = await registerUser(data);
+      onSuccess(result);
     } catch (err: any) {
       setErrorMsg(err.message || 'Registration failed. Please try again.');
     } finally {

@@ -59,6 +59,12 @@ export class AuthRepository {
       where: { resetToken: token },
     });
   }
+
+  async findByVerificationToken(token: string): Promise<User | null> {
+    return prisma.user.findFirst({
+      where: { verificationToken: token },
+    });
+  }
 }
 
 export const authRepository = new AuthRepository();

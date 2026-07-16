@@ -13,6 +13,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: any) => Promise<void>;
+  loginGoogle: (credentials?: { email: string; firstName: string; lastName: string; workspaceName?: string }) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
   error: string | null;
@@ -36,7 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         } catch (err) {
           localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
         }
       }
@@ -50,10 +50,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     try {
       const response = await apiClient.post('/auth/login', credentials);
-      const { user: loggedInUser, workspace, accessToken, refreshToken } = response.data.data;
+      const { user: loggedInUser, workspace, accessToken } = response.data.data;
       
       localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(loggedInUser));
       if (workspace) {
         localStorage.setItem('activeWorkspaceId', workspace.id);
@@ -67,20 +66,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (data: any) => {
+  const loginGoogle = async (credentials?: { email: string; firstName: string; lastName: string; workspaceName?: string }) => {
     setError(null);
     try {
-      const response = await apiClient.post('/auth/register', data);
-      const { user: registeredUser, workspace, accessToken, refreshToken } = response.data.data;
-
+      const response = await apiClient.post('/auth/google-simulated', credentials);
+      const { user: loggedInUser, workspace, accessToken } = response.data.data;
+      
       localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('user', JSON.stringify(registeredUser));
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
       if (workspace) {
         localStorage.setItem('activeWorkspaceId', workspace.id);
         localStorage.setItem('activeWorkspaceName', workspace.name);
       }
-      setUser(registeredUser);
+      setUser(loggedInUser);
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Google Sign In failed.';
+      setError(errMsg);
+      throw new Error(errMsg);
+    }
+  };
+
+  const register = async (data: any) => {
+    setError(null);
+    try {
+      const response = await apiClient.post('/auth/register', data);
+      return response.data.data;
     } catch (err: any) {
       const errMsg = err.response?.data?.message || 'Registration failed.';
       setError(errMsg);
@@ -90,7 +100,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     localStorage.removeItem('activeWorkspaceId');
     localStorage.removeItem('activeWorkspaceName');
@@ -104,6 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginGoogle,
         register,
         logout,
         error,

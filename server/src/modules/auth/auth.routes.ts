@@ -29,7 +29,11 @@ const resetPasswordSchema = z.object({
 
 router.post('/register', validateBody(registerSchema), authController.register);
 router.post('/login', validateBody(loginSchema), authController.login);
+router.post('/refresh', authController.refresh);
+router.post('/logout', authController.logout);
+router.get('/verify-email', authController.verifyEmail);
 router.post('/forgot-password', validateBody(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', validateBody(resetPasswordSchema), authController.resetPassword);
+router.post('/google-simulated', authController.googleSimulated);
 
 export default router;

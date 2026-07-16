@@ -3,21 +3,23 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import LoginPage from '@/modules/auth/pages/LoginPage';
 import RegisterPage from '@/modules/auth/pages/RegisterPage';
+import ForgotPasswordPage from '@/modules/auth/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@/modules/auth/pages/ResetPasswordPage';
+import VerifyEmailPage from '@/modules/auth/pages/VerifyEmailPage';
+import SimulatedGoogleAuth from '@/modules/auth/pages/SimulatedGoogleAuth';
 import ClientsPage from '@/modules/clients/pages/ClientsPage';
 import ProductsPage from '@/modules/products/pages/ProductsPage';
 import DashboardPage from '@/modules/dashboard/pages/DashboardPage';
+import WorkspacePage from '@/modules/workspace/pages/WorkspacePage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ComingSoon } from '@/components/ComingSoon';
 import {
-  Building,
   FileText,
   Briefcase,
   CreditCard,
   TrendingDown,
   BarChart3,
   Bell,
-  Users,
-  Settings,
   Bot,
   Scroll,
   ShieldCheck,
@@ -47,9 +49,15 @@ export const AppRoutes: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Public Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/simulated-google-auth" element={<SimulatedGoogleAuth />} />
           
+          {/* Protected Dashboard Layout Routes */}
           <Route
             element={
               <ProtectedRoute>
@@ -63,17 +71,7 @@ export const AppRoutes: React.FC = () => {
             <Route path="/products" element={<ProductsPage />} />
             
             {/* Simulated Modules utilizing ComingSoon wrapper */}
-            <Route
-              path="/workspace"
-              element={
-                <ComingSoon
-                  icon={Building}
-                  title="Workspace Switcher"
-                  description="Manage multiple organization spaces, workspace parameters, logos, active currencies, and multi-tenant profiles."
-                  breadcrumbs={['Main', 'Workspace']}
-                />
-              }
-            />
+            <Route path="/workspace" element={<WorkspacePage />} />
             <Route
               path="/quotations"
               element={
@@ -142,28 +140,8 @@ export const AppRoutes: React.FC = () => {
                 />
               }
             />
-            <Route
-              path="/team"
-              element={
-                <ComingSoon
-                  icon={Users}
-                  title="Team & Roles (RBAC)"
-                  description="Invite team members, assign custom roles (Owner, Admin, Accountant, Viewer), and configure access privileges."
-                  breadcrumbs={['Management', 'Team & Roles']}
-                />
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ComingSoon
-                  icon={Settings}
-                  title="Global Settings"
-                  description="Adjust regional date-time preferences, active currencies, tax rules, invoice layouts, and company registrations."
-                  breadcrumbs={['Management', 'Settings']}
-                />
-              }
-            />
+            <Route path="/team" element={<WorkspacePage />} />
+            <Route path="/settings" element={<WorkspacePage />} />
 
             {/* Future Paths */}
             <Route

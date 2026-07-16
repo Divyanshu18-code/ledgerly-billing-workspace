@@ -10,24 +10,32 @@ datasource db {
 }
 
 model User {
-  id               String            @id @default(uuid())
-  email            String            @unique
-  passwordHash     String
-  firstName        String
-  lastName         String
-  isVerified       Boolean           @default(false)
-  resetToken       String?
-  resetTokenExp    DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  workspaceMembers WorkspaceMember[]
-  auditLogs        AuditLog[]
+  id                String            @id @default(uuid())
+  email             String            @unique
+  passwordHash      String
+  firstName         String
+  lastName          String
+  isVerified        Boolean           @default(false)
+  verificationToken String?
+  resetToken        String?
+  resetTokenExp     DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  workspaceMembers  WorkspaceMember[]
+  auditLogs         AuditLog[]
 }
 
 model Workspace {
   id               String            @id @default(uuid())
   name             String
   logoUrl          String?
+  gstNumber        String?
+  currency         String            @default("USD")
+  timezone         String            @default("UTC")
+  invoicePrefix    String            @default("INV-")
+  address          String?
+  phone            String?
+  email            String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   workspaceMembers WorkspaceMember[]

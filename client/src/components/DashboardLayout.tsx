@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import { useWorkspaceData } from '@/modules/workspace/hooks/useWorkspace';
 import {
   LayoutDashboard,
   Users,
@@ -36,7 +37,8 @@ export const DashboardLayout: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
 
-  const activeWorkspaceName = localStorage.getItem('activeWorkspaceName') || 'Default Workspace';
+  const { data: workspace } = useWorkspaceData();
+  const activeWorkspaceName = workspace?.name || localStorage.getItem('activeWorkspaceName') || 'Default Workspace';
 
   // Complete Sidebar Categories Setup
   const mainItems = [
@@ -97,7 +99,7 @@ export const DashboardLayout: React.FC = () => {
 
   const breadcrumbs = getBreadcrumbs();
 
-  const SidebarContent = () => (
+  const renderSidebarContent = () => (
     <div className="flex flex-col h-full bg-[#fcfcfd] dark:bg-[#0d0c11] border-r border-gray-200 dark:border-white/5 text-gray-650 dark:text-gray-400 select-none">
       {/* Brand Header */}
       <div className={`flex items-center gap-3 px-6 py-6 border-b border-gray-200 dark:border-white/5 ${isCollapsed ? 'justify-center px-4' : ''}`}>
@@ -217,7 +219,7 @@ export const DashboardLayout: React.FC = () => {
     <div className="min-h-screen flex bg-gray-50 dark:bg-[#0c0a0f] text-gray-900 dark:text-white transition-colors duration-200">
       {/* Desktop Sidebar (Collapsible) */}
       <aside className={`hidden md:block flex-shrink-0 h-screen sticky top-0 transition-all duration-300 z-30 ${isCollapsed ? 'w-20' : 'w-64'}`}>
-        <SidebarContent />
+        {renderSidebarContent()}
       </aside>
 
       {/* Main Container */}
@@ -277,7 +279,7 @@ export const DashboardLayout: React.FC = () => {
             <aside className="relative w-64 h-full flex-shrink-0 z-50">
               {/* Force non-collapsed sidebar inside mobile drawers */}
               <div className="h-full" onClick={(e) => e.stopPropagation()}>
-                <SidebarContent />
+                {renderSidebarContent()}
               </div>
             </aside>
           </div>

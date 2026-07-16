@@ -11,7 +11,7 @@ const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 export class AuthService {
-  private generateTokens(userId: string, email: string) {
+  generateTokens(userId: string, email: string) {
     const accessToken = jwt.sign({ id: userId, email }, JWT_ACCESS_SECRET, {
       expiresIn: ACCESS_TOKEN_EXPIRY,
     });
@@ -35,6 +35,7 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(data.password, 10);
     const workspaceName = data.workspaceName || `${data.firstName}'s Workspace`;
+    const verificationToken = crypto.randomBytes(32).toString('hex');
 
     const { user, workspace } = await authRepository.createUserWithWorkspace(
       {
@@ -42,6 +43,7 @@ export class AuthService {
         passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
+        verificationToken,
       },
       workspaceName
     );
@@ -54,6 +56,8 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        isVerified: user.isVerified,
+        verificationToken: user.verificationToken, // Returned for simulated verification flows in development
       },
       workspace: {
         id: workspace.id,
@@ -73,6 +77,10 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
     if (!isPasswordValid) {
       throw ApiError.unauthorized('Invalid email or password');
+    }
+
+    if (!user.isVerified) {
+      throw ApiError.forbidden('Please verify your email address before logging in');
     }
 
     // Fetch user's first workspace membership
@@ -96,11 +104,52 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        isVerified: user.isVerified,
       },
       workspace: membership ? membership.workspace : null,
       accessToken,
       refreshToken,
     };
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    const user = await authRepository.findByVerificationToken(token);
+    if (!user) {
+      throw ApiError.badRequest('Invalid or expired verification token');
+    }
+
+    await authRepository.updateUser(user.id, {
+      isVerified: true,
+      verificationToken: null,
+    });
+  }
+
+  async refresh(token: string) {
+    try {
+      const decoded = jwt.verify(token, JWT_REFRESH_SECRET) as { id: string; email: string };
+      const user = await authRepository.findById(decoded.id);
+      if (!user) {
+        throw ApiError.unauthorized('User session not found');
+      }
+
+      if (!user.isVerified) {
+        throw ApiError.forbidden('Please verify your email address first');
+      }
+
+      const tokens = this.generateTokens(user.id, user.email);
+      return {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isVerified: user.isVerified,
+        },
+        ...tokens,
+      };
+    } catch (error) {
+      throw ApiError.unauthorized('Session expired or invalid token');
+    }
   }
 
   async forgotPassword(email: string): Promise<string> {
