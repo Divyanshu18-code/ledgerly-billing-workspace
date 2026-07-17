@@ -58,8 +58,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               onClick={() => setValue('isService', false)}
               className={`flex-1 py-3 rounded-lg border text-sm font-semibold transition cursor-pointer text-center ${
                 !isServiceValue
-                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-600/10 text-violet-600 dark:text-violet-400'
-                  : 'border-gray-200 dark:border-white/5 bg-white dark:bg-[#16151a] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400'
+                  : 'border-gray-100 dark:border-white/5 bg-white dark:bg-[#18181b] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
               }`}
             >
               📦 Physical Product
@@ -69,8 +69,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               onClick={() => setValue('isService', true)}
               className={`flex-1 py-3 rounded-lg border text-sm font-semibold transition cursor-pointer text-center ${
                 isServiceValue
-                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-600/10 text-violet-600 dark:text-violet-400'
-                  : 'border-gray-200 dark:border-white/5 bg-white dark:bg-[#16151a] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400'
+                  : 'border-gray-100 dark:border-white/5 bg-white dark:bg-[#18181b] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
               }`}
             >
               🛠️ Billable Service
@@ -84,7 +84,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             type="text"
             {...register('name')}
             placeholder={isServiceValue ? 'e.g. Consulting Hour' : 'e.g. Server Hardware'}
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#16151a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-100 dark:border-white/10 bg-white dark:bg-[#18181b] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
           />
           {errors.name && (
             <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.name.message}</p>
@@ -98,7 +98,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               type="text"
               {...register('sku')}
               placeholder="e.g. PRD-10293"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#16151a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-100 dark:border-white/10 bg-white dark:bg-[#18181b] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
             />
             {errors.sku && (
               <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.sku.message}</p>
@@ -113,7 +113,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               {...register('price', { valueAsNumber: true })}
               onFocus={(e) => e.target.select()}
               placeholder="0.00"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#16151a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-100 dark:border-white/10 bg-white dark:bg-[#18181b] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
             />
             {errors.price && (
               <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.price.message}</p>
@@ -127,23 +127,23 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             {...register('description')}
             rows={3}
             placeholder="Provide detail specifications..."
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#16151a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm resize-none"
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-100 dark:border-white/10 bg-white dark:bg-[#18181b] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm resize-none"
           />
         </div>
       </div>
 
-      <div className="flex justify-end gap-4 border-t border-gray-200 dark:border-white/10 pt-6 mt-6">
+      <div className="flex justify-end gap-4 border-t border-gray-100 dark:border-white/10 pt-6 mt-6">
         <button
           type="button"
           onClick={onCancel}
-          className="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition text-sm font-medium cursor-pointer"
+          className="px-5 py-2.5 rounded-lg border border-gray-100 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition text-sm font-medium cursor-pointer"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-medium disabled:opacity-50 transition text-sm cursor-pointer shadow-lg"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium disabled:opacity-50 transition text-sm cursor-pointer shadow-lg"
         >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           Save Item

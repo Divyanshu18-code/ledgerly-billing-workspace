@@ -68,16 +68,16 @@ export const ProductsPage: React.FC = () => {
   return (
     <div className="relative overflow-hidden">
       {/* Background radial glow */}
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-violet-600/5 dark:bg-violet-600/10 rounded-full blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/5 dark:bg-indigo-600/10 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[150px] pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10 space-y-8">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-200 dark:border-white/10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-100 dark:border-white/10">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/dashboard')}
-              className="p-2 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+              onClick={() => navigate(-1)}
+              className="p-2 rounded-lg border border-gray-100 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
             >
               <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </button>
@@ -88,7 +88,7 @@ export const ProductsPage: React.FC = () => {
           </div>
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 px-5 py-3 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-medium transition shadow-lg shadow-violet-500/10 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium transition shadow-lg shadow-blue-500/10 cursor-pointer"
           >
             <Plus className="h-5 w-5" />
             Add Item
@@ -105,22 +105,22 @@ export const ProductsPage: React.FC = () => {
             placeholder="Search by name or SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#16151a]/60 backdrop-blur-md text-gray-900 dark:text-white placeholder-gray-450 dark:placeholder-gray-550 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-100 dark:border-white/10 bg-white dark:bg-card/60 backdrop-blur-md text-gray-900 dark:text-white placeholder-gray-450 dark:placeholder-gray-550 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
           />
         </div>
 
         {/* List of Products */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-10 w-10 animate-spin text-violet-500 mb-4" />
+            <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
             <p className="text-gray-500 dark:text-gray-400 text-sm">Loading items registry...</p>
           </div>
         ) : error ? (
-          <div className="p-4 rounded-lg border border-red-500/20 bg-red-500/10 text-red-650 dark:text-red-400 text-center text-sm">
+          <div className="p-4 rounded-lg border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-center text-sm">
             Failed to load products. Please check server connections.
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 border border-dashed border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#16151a]/20">
+          <div className="flex flex-col items-center justify-center py-20 border border-dashed border-gray-100 dark:border-white/10 rounded-2xl bg-white dark:bg-[#18181b]/20">
             <Box className="h-16 w-16 text-gray-450 dark:text-gray-600 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No Items Registered</h3>
             <p className="text-gray-550 dark:text-gray-400 text-sm max-w-xs text-center mb-6">
@@ -129,7 +129,7 @@ export const ProductsPage: React.FC = () => {
             {!searchQuery && (
               <button
                 onClick={openCreateModal}
-                className="px-5 py-2.5 rounded-lg bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition text-sm font-medium cursor-pointer"
+                className="px-5 py-2.5 rounded-lg bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition text-sm font-medium cursor-pointer"
               >
                 Add Item
               </button>
@@ -140,12 +140,12 @@ export const ProductsPage: React.FC = () => {
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className="p-6 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121115]/60 backdrop-blur-md hover:border-violet-500/40 dark:hover:border-violet-500/50 hover:shadow-lg dark:hover:shadow-violet-500/5 transition flex flex-col justify-between"
+                className="p-6 rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-card/60 backdrop-blur-md hover:border-blue-500/40 dark:hover:border-blue-500/50 hover:shadow-lg dark:hover:shadow-blue-500/5 transition flex flex-col justify-between"
               >
                 <div className="space-y-4">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-violet-100 dark:bg-violet-600/10 border border-violet-200 dark:border-violet-500/15 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                      <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-600/10 border border-blue-200 dark:border-blue-500/15 flex items-center justify-center text-blue-600 dark:text-blue-400">
                         {product.isService ? <Briefcase className="h-5 w-5" /> : <Box className="h-5 w-5" />}
                       </div>
                       <div>
@@ -163,7 +163,7 @@ export const ProductsPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(product.id)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-red-650 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/5 transition cursor-pointer"
+                        className="p-2 rounded-lg text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/5 transition cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -176,7 +176,7 @@ export const ProductsPage: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <span className="text-[10px] text-gray-500 dark:text-gray-550 block">Rate / Price</span>
-                      <span className="text-xl font-extrabold text-violet-600 dark:text-violet-400 font-heading">
+                      <span className="text-xl font-extrabold text-blue-600 dark:text-blue-400 font-heading">
                         ${Number(product.price).toFixed(2)}
                       </span>
                     </div>
@@ -190,8 +190,8 @@ export const ProductsPage: React.FC = () => {
         {/* Modal Form Dialog */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/60 backdrop-blur-sm overflow-y-auto">
-            <div className="w-full max-w-xl p-8 rounded-2xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#0f0e13] shadow-2xl overflow-y-auto max-h-[90vh]">
-              <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-white/10 mb-6">
+            <div className="w-full max-w-xl p-8 rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-card shadow-2xl overflow-y-auto max-h-[90vh]">
+              <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-white/10 mb-6">
                 <h2 className="text-2xl font-bold font-heading text-gray-900 dark:text-white">
                   {editingProduct ? 'Modify Registered Item' : 'Register New Inventory Item'}
                 </h2>

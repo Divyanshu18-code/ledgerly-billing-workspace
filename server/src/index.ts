@@ -26,7 +26,7 @@ app.use(express.json());
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/clients', clientsRoutes);
 app.use('/api/v1/products', productsRoutes);
-app.use('/api/v1', workspaceRoutes);
+app.use('/api/v1/workspaces', workspaceRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({

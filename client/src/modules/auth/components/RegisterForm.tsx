@@ -71,7 +71,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onNavigat
                 type="text"
                 {...register('firstName')}
                 placeholder="John"
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
               />
             </div>
             {errors.firstName && (
@@ -89,7 +89,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onNavigat
                 type="text"
                 {...register('lastName')}
                 placeholder="Doe"
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
               />
             </div>
             {errors.lastName && (
@@ -108,7 +108,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onNavigat
               type="email"
               {...register('email')}
               placeholder="name@company.com"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
             />
           </div>
           {errors.email && (
@@ -126,7 +126,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onNavigat
               type="password"
               {...register('password')}
               placeholder="••••••••"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
             />
           </div>
           {errors.password && (
@@ -144,7 +144,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onNavigat
               type="text"
               {...register('workspaceName')}
               placeholder="Acme Corp"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
             />
           </div>
         </div>
@@ -152,7 +152,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onNavigat
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full flex items-center justify-center py-3 px-4 mt-6 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:opacity-50 transition shadow-lg cursor-pointer"
+          className="w-full flex items-center justify-center py-3 px-4 mt-6 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition shadow-lg cursor-pointer"
         >
           {isSubmitting ? (
             <Loader2 className="h-5 w-5 animate-spin mr-2" />
@@ -165,7 +165,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onNavigat
         Already have an account?{' '}
         <button
           onClick={onNavigateToLogin}
-          className="text-violet-400 hover:text-violet-300 font-medium transition cursor-pointer"
+          className="text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer"
         >
           Sign in
         </button>

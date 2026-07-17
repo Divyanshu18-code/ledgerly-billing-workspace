@@ -11,6 +11,7 @@ import ClientsPage from '@/modules/clients/pages/ClientsPage';
 import ProductsPage from '@/modules/products/pages/ProductsPage';
 import DashboardPage from '@/modules/dashboard/pages/DashboardPage';
 import WorkspacePage from '@/modules/workspace/pages/WorkspacePage';
+import AcceptInvitationPage from '@/modules/workspace/pages/AcceptInvitationPage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ComingSoon } from '@/components/ComingSoon';
 import {
@@ -32,7 +33,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0c0a0f] text-white">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
       </div>
     );
   }
@@ -191,6 +192,15 @@ export const AppRoutes: React.FC = () => {
               }
             />
           </Route>
+
+          <Route
+            path="/accept-invitation"
+            element={
+              <ProtectedRoute>
+                <AcceptInvitationPage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

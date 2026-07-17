@@ -108,7 +108,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
               type="email"
               {...register('email')}
               placeholder="name@company.com"
-              className="w-full pl-10 pr-4 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+              className="w-full pl-10 pr-4 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
             />
           </div>
           {errors.email && (
@@ -126,7 +126,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
               type={showPassword ? 'text' : 'password'}
               {...register('password')}
               placeholder="••••••••"
-              className="w-full pl-10 pr-10 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+              className="w-full pl-10 pr-10 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
             />
             <button
               type="button"
@@ -143,16 +143,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
 
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center text-gray-400 cursor-pointer select-none">
-            <input type="checkbox" className="rounded border-white/10 bg-[#16151a] text-violet-600 focus:ring-0 mr-2 cursor-pointer" />
+            <input type="checkbox" className="rounded border-white/10 bg-[#16151a] text-blue-600 focus:ring-0 mr-2 cursor-pointer" />
             Remember me
           </label>
-          <Link to="/forgot-password" className="text-violet-400 hover:text-violet-300 transition">Forgot password?</Link>
+          <Link to="/forgot-password" className="text-blue-400 hover:text-blue-300 transition">Forgot password?</Link>
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full flex items-center justify-center py-3 px-4 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:opacity-50 transition shadow-lg cursor-pointer text-sm font-semibold"
+          className="w-full flex items-center justify-center py-3 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition shadow-lg cursor-pointer text-sm font-semibold"
         >
           {isSubmitting ? (
             <Loader2 className="h-5 w-5 animate-spin mr-2" />
@@ -201,7 +201,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
         Don't have an account?{' '}
         <button
           onClick={onNavigateToRegister}
-          className="text-violet-400 hover:text-violet-300 font-medium transition cursor-pointer"
+          className="text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer"
         >
           Sign up for free
         </button>

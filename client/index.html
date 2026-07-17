@@ -1,13 +1,119 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>client</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>Ledgerly — Intelligent Billing & Finance Platform</title>
+    <meta name="description" content="Streamlined billing, invoicing, financial tracking, and client management execution engine engineered for modern startups, agencies, and freelancers." />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Splash/Preloader Style -->
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff;
+        color: #09090b;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .dark html, .dark body {
+        background-color: #09090b;
+        color: #f8fafc;
+      }
+      .app-preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        z-index: 9999;
+        transition: opacity 0.4s ease-out, visibility 0.4s;
+      }
+      .dark .app-preloader {
+        background-color: #09090b;
+      }
+      .preloader-glow {
+        position: absolute;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, rgba(37, 99, 235, 0) 70%);
+        border-radius: 50%;
+        filter: blur(20px);
+        animation: pulse-glow 3s infinite ease-in-out;
+      }
+      .preloader-logo {
+        position: relative;
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        background: linear-gradient(135deg, #60a5fa 0%, #2563eb 50%, #1d4ed8 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 24px;
+        animation: scale-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .preloader-spinner {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        border: 2.5px solid rgba(0, 0, 0, 0.05);
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      .dark .preloader-spinner {
+        border-color: rgba(255, 255, 255, 0.05);
+        border-top-color: #2563eb;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      @keyframes pulse-glow {
+        0%, 100% { transform: scale(0.9); opacity: 0.5; }
+        50% { transform: scale(1.15); opacity: 0.9; }
+      }
+      @keyframes scale-up {
+        from { transform: scale(0.92); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+    </style>
   </head>
-  <body>
-    <div id="root"></div>
+  <body class="antialiased min-h-screen">
+    <div id="root">
+      <!-- Elegant loading fallback shown during initial asset download -->
+      <div id="preloader" class="app-preloader">
+        <div class="preloader-glow"></div>
+        <div class="preloader-logo">Ledgerly</div>
+        <div class="preloader-spinner"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Automatically fade out the loader on asset loaded
+      window.addEventListener('load', function() {
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+          preloader.style.opacity = '0';
+          setTimeout(function() {
+            preloader.style.display = 'none';
+          }, 400);
+        }
+      });
+    </script>
   </body>
 </html>

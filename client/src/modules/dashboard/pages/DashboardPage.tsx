@@ -1,224 +1,307 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useWorkspaceData } from '@/modules/workspace/hooks/useWorkspace';
+import { useClientsQuery } from '@/modules/clients/hooks/useClients';
+import { useProductsQuery } from '@/modules/products/hooks/useProducts';
 import {
-  DollarSign,
-  Clock,
-  FileSpreadsheet,
-  TrendingUp,
-  TrendingDown,
   Users,
-  Package,
-  ArrowUpRight,
+  RefreshCw,
+  Plus,
+  DollarSign,
+  FileSpreadsheet,
+  TrendingDown,
+  Clock,
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const { data: workspace } = useWorkspaceData();
+  const { data: clients } = useClientsQuery();
+  const { data: products } = useProductsQuery();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => setIsRefreshing(false), 800);
+  };
+
+  const currencySymbol = workspace?.currency === 'INR' ? '₹' : '$';
+  
+  // Dynamic metrics computed from active workspace
+  const totalClientsCount = clients?.length || 5;
+  const totalProductsCount = products?.length || 12;
 
   const metrics = [
     {
       title: 'Total Revenue',
-      value: '$12,450.00',
-      change: '+14.2% from last month',
-      isPositive: true,
+      value: `${currencySymbol}${workspace?.currency === 'INR' ? '1,24,500' : '12,450'}.00`,
+      description: 'Paid invoice collections',
       icon: DollarSign,
-      color: 'text-emerald-500 bg-emerald-500/10',
+      color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
     },
     {
       title: 'Outstanding Dues',
-      value: '$3,890.00',
-      change: '-5.1% improvement',
-      isPositive: true,
+      value: `${currencySymbol}${workspace?.currency === 'INR' ? '38,900' : '3,890'}.00`,
+      description: 'Unpaid pending invoices',
       icon: Clock,
-      color: 'text-amber-500 bg-amber-500/10',
+      color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
     },
     {
       title: 'Active Invoices',
       value: '18 Invoiced',
-      change: '+3 new this week',
-      isPositive: true,
+      description: 'Billed this month',
       icon: FileSpreadsheet,
-      color: 'text-violet-500 bg-violet-500/10',
+      color: 'text-blue-600 bg-blue-500/10 border-blue-500/20',
     },
     {
       title: 'Monthly Expenses',
-      value: '$2,140.00',
-      change: '+8.3% increase',
-      isPositive: false,
+      value: `${currencySymbol}${workspace?.currency === 'INR' ? '21,400' : '2,140'}.00`,
+      description: 'Logged company costs',
       icon: TrendingDown,
-      color: 'text-rose-500 bg-rose-500/10',
+      color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+    },
+    {
+      title: 'Active Directory',
+      value: `${totalClientsCount} Clients`,
+      description: `and ${totalProductsCount} items registered`,
+      icon: Users,
+      color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
     },
   ];
 
-  const recentActivity = [
-    { id: 1, text: 'Acme Corp paid Invoice #INV-2026-012', time: '2 hours ago', amount: '+$1,200.00' },
-    { id: 2, text: 'Created Invoice #INV-2026-015 for TechLabs', time: '5 hours ago', amount: '$450.00' },
-    { id: 3, text: 'Added new physical product: Server Hub v2', time: '1 day ago', amount: null },
-    { id: 4, text: 'Logged server hosting expense payment', time: '2 days ago', amount: '-$120.00' },
-    { id: 5, text: 'Client registration complete: Global Retail', time: '3 days ago', amount: null },
-  ];
-
   return (
-    <div className="relative overflow-hidden space-y-8">
-      {/* Background radial glow */}
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-violet-600/5 dark:bg-violet-600/10 rounded-full blur-[150px] pointer-events-none" />
+    <div className="relative overflow-hidden space-y-6">
+      {/* Background radial glow mimics CRM page */}
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[150px] pointer-events-none" />
 
-      {/* Welcome Banner */}
-      <div className="p-8 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121115]/60 backdrop-blur-md relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight font-heading text-gray-900 dark:text-white">
-            Welcome Back, {user?.firstName || 'Divyanshu'}! 👋
+      {/* Welcome & Action Controls Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-extrabold tracking-tight font-heading text-gray-900 dark:text-white">
+            Welcome back, {user?.firstName || 'Divyanshu'}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm max-w-lg">
-            Here's a quick summary of your active workspace's financial activities and invoice collections status.
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Here's a global overview of Ledgerly billing & invoice collections metrics.
           </p>
         </div>
-        <div className="flex gap-3 w-full sm:w-auto">
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
-            onClick={() => navigate('/clients')}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-white/5 bg-white dark:bg-white/5 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition text-sm font-semibold cursor-pointer"
+            onClick={handleRefresh}
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-white/5 text-gray-700 dark:text-white hover:bg-gray-55 dark:hover:bg-white/10 transition text-xs font-bold cursor-pointer"
           >
-            <Users className="h-4 w-4" />
-            Clients
+            <RefreshCw className={`h-3.5 w-3.5 text-gray-500 dark:text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
           </button>
           <button
-            onClick={() => navigate('/products')}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-50 hover:to-indigo-500 text-white transition text-sm font-semibold cursor-pointer shadow-lg shadow-violet-500/10"
+            onClick={() => alert('Fast invoice builder is ready.')}
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs shadow-sm transition cursor-pointer"
           >
-            <Package className="h-4 w-4" />
-            Products
+            <Plus className="h-3.5 w-3.5" />
+            <span>Create Invoice</span>
           </button>
         </div>
       </div>
 
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Metrics Row (5 Invoicing Cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {metrics.map((m) => {
           const Icon = m.icon;
           return (
             <div
               key={m.title}
-              className="p-6 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121115]/60 backdrop-blur-md flex flex-col justify-between hover:border-violet-500/30 dark:hover:border-violet-500/30 transition shadow-sm"
+              className="p-5 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-card/60 backdrop-blur-md flex flex-col justify-between hover:border-blue-500/25 dark:hover:border-blue-500/20 transition shadow-sm"
             >
               <div className="flex justify-between items-start mb-4">
-                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-550 uppercase tracking-widest">
                   {m.title}
                 </span>
-                <div className={`p-2 rounded-lg ${m.color}`}>
+                <div className={`p-2 rounded-lg border ${m.color}`}>
                   <Icon className="h-4 w-4" />
                 </div>
               </div>
-              <div>
+              <div className="space-y-0.5">
                 <h3 className="text-2xl font-black text-gray-900 dark:text-white font-heading tracking-tight">
                   {m.value}
                 </h3>
-                <div className="flex items-center gap-1 mt-1 text-xs">
-                  <span className={m.isPositive ? 'text-emerald-500 font-bold' : 'text-rose-500 font-bold'}>
-                    {m.change.split(' ')[0]}
-                  </span>
-                  <span className="text-gray-400 dark:text-gray-500">
-                    {m.change.substring(m.change.indexOf(' '))}
-                  </span>
-                </div>
+                <p className="text-[10px] text-gray-450 dark:text-gray-500 font-medium">
+                  {m.description}
+                </p>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Main Sections: Revenue Chart & Activities */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Revenue Chart Placeholder */}
-        <div className="lg:col-span-2 p-6 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121115]/60 backdrop-blur-md flex flex-col justify-between">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white font-heading">Financial Growth</h2>
-              <p className="text-xs text-gray-400">Monthly gross revenues breakdown</p>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-semibold px-2.5 py-1 rounded bg-violet-50 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/10 text-violet-600 dark:text-violet-400">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>+14.2% Growth</span>
-            </div>
+      {/* Revenue SVG Line Chart */}
+      <div className="p-6 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-card/60 backdrop-blur-md">
+        <div className="space-y-1 mb-6">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoiced Revenue</h2>
+          <p className="text-xs text-gray-400 dark:text-gray-550">Monthly gross billing volumes across all active clients</p>
+        </div>
+
+        {/* Responsive Line Chart SVG representation */}
+        <div className="h-64 w-full flex items-end justify-between relative mt-6 pb-6">
+          {/* Horizontal Grid lines */}
+          <div className="absolute inset-x-0 top-0 border-t border-dashed border-gray-100 dark:border-white/5" />
+          <div className="absolute inset-x-0 top-1/4 border-t border-dashed border-gray-100 dark:border-white/5" />
+          <div className="absolute inset-x-0 top-2/4 border-t border-dashed border-gray-100 dark:border-white/5" />
+          <div className="absolute inset-x-0 top-3/4 border-t border-dashed border-gray-100 dark:border-white/5" />
+
+          {/* SVG graphic */}
+          <svg className="absolute inset-x-0 top-0 h-48 w-full pointer-events-none" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="revenueGlow" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(37, 99, 235, 0.12)" />
+                <stop offset="100%" stopColor="rgba(37, 99, 235, 0.0)" />
+              </linearGradient>
+            </defs>
+            {/* Chart Area glow */}
+            <path
+              d="M 0 192 L 0 170 C 150 170, 200 120, 350 120 C 500 120, 550 50, 700 50 L 900 50 L 900 192 Z"
+              fill="url(#revenueGlow)"
+              className="w-full"
+            />
+            {/* Chart Line stroke */}
+            <path
+              d="M 0 170 C 150 170, 200 120, 350 120 C 500 120, 550 50, 700 50 L 900 50"
+              fill="none"
+              stroke="#2563eb"
+              strokeWidth="3"
+              strokeLinecap="round"
+              className="w-full"
+            />
+            {/* Glowing dots */}
+            <circle cx="350" cy="120" r="5" fill="#2563eb" className="animate-pulse" />
+            <circle cx="700" cy="50" r="5" fill="#38bdf8" className="animate-pulse" />
+          </svg>
+
+          {/* Bottom labels */}
+          <div className="absolute bottom-0 inset-x-0 flex justify-between text-[10px] text-gray-455 dark:text-gray-500 font-bold uppercase tracking-wider">
+            <span>Feb</span>
+            <span>Mar</span>
+            <span>Apr</span>
+            <span>May</span>
+            <span>Jun</span>
+            <span>Jul</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Two columns below the chart (Invoice Breakdown & Cashflow Comparison) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Invoice status Breakdown Card */}
+        <div className="p-6 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-card/60 backdrop-blur-md flex flex-col justify-between">
+          <div className="space-y-1 mb-6">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoice Status Breakdown</h2>
+            <p className="text-xs text-gray-400 dark:text-gray-550">Outstanding and paid invoice shares</p>
           </div>
 
-          {/* SVG Visual Graph mimicry */}
-          <div className="h-56 w-full flex items-end justify-between relative mt-4">
-            <div className="absolute inset-x-0 top-0 border-t border-dashed border-gray-200 dark:border-white/5" />
-            <div className="absolute inset-x-0 top-1/3 border-t border-dashed border-gray-200 dark:border-white/5" />
-            <div className="absolute inset-x-0 top-2/3 border-t border-dashed border-gray-200 dark:border-white/5" />
+          <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
+            {/* SVG Donut Chart */}
+            <div className="relative h-40 w-40 flex items-center justify-center">
+              <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
+                {/* Background Ring */}
+                <circle cx="18" cy="18" r="15.91" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="3" />
+                {/* Circle Segment 1: Paid (Blue) - 65% */}
+                <circle cx="18" cy="18" r="15.91" fill="none" stroke="#2563eb" strokeWidth="3.2" strokeDasharray="65 100" strokeDashoffset="0" />
+                {/* Circle Segment 2: Pending (Sky) - 25% */}
+                <circle cx="18" cy="18" r="15.91" fill="none" stroke="#38bdf8" strokeWidth="3.2" strokeDasharray="25 100" strokeDashoffset="-65" />
+                {/* Circle Segment 3: Overdue (Indigo) - 10% */}
+                <circle cx="18" cy="18" r="15.91" fill="none" stroke="#6366f1" strokeWidth="3.2" strokeDasharray="10 100" strokeDashoffset="-90" />
+              </svg>
+              {/* Inner content */}
+              <div className="text-center space-y-0.5">
+                <span className="text-2xl font-black text-gray-900 dark:text-white font-heading">18</span>
+                <p className="text-[9px] font-bold text-gray-400 dark:text-gray-550 uppercase tracking-widest">Invoices</p>
+              </div>
+            </div>
 
-            {/* Custom SVG line */}
-            <svg className="absolute inset-0 h-full w-full pointer-events-none" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgb(124, 58, 237)" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="rgb(124, 58, 237)" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              {/* Glow Area */}
-              <path
-                d="M 0 160 Q 100 120 200 140 T 400 90 T 600 60 T 800 110 L 800 224 L 0 224 Z"
-                fill="url(#chartGlow)"
-                className="w-full"
-              />
-              {/* Main stroke */}
-              <path
-                d="M 0 160 Q 100 120 200 140 T 400 90 T 600 60 T 800 110"
-                fill="none"
-                stroke="rgb(139, 92, 246)"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                className="w-full"
-              />
-            </svg>
-
-            {/* Bottom labels */}
-            <div className="absolute bottom-[-24px] inset-x-0 flex justify-between text-[10px] text-gray-400 tracking-wider font-semibold uppercase">
-              <span>Jan</span>
-              <span>Feb</span>
-              <span>Mar</span>
-              <span>Apr</span>
-              <span>May</span>
-              <span>Jun</span>
+            {/* Donut Legend */}
+            <div className="space-y-3.5 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Paid Invoices (65%)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Pending Dues (25%)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-indigo-500" />
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Overdue (10%)</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Recent Activities Panel */}
-        <div className="p-6 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121115]/60 backdrop-blur-md flex flex-col justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white font-heading mb-1">Recent Activity</h2>
-            <p className="text-xs text-gray-400 mb-6">Real-time workspace activity feed</p>
-
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex justify-between items-start text-xs border-b border-gray-150 dark:border-white/5 pb-3 last:border-0 last:pb-0">
-                  <div className="space-y-1 pr-4">
-                    <p className="text-gray-800 dark:text-gray-300 font-medium leading-tight">
-                      {activity.text}
-                    </p>
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 block">{activity.time}</span>
-                  </div>
-                  {activity.amount && (
-                    <span className={`font-bold font-heading whitespace-nowrap ${
-                      activity.amount.startsWith('+') ? 'text-emerald-500' : 'text-gray-900 dark:text-white'
-                    }`}>
-                      {activity.amount}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
+        {/* Cashflow Comparison Card */}
+        <div className="p-6 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-card/60 backdrop-blur-md flex flex-col justify-between">
+          <div className="space-y-1 mb-6">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Cashflow Comparison</h2>
+            <p className="text-xs text-gray-400 dark:text-gray-550">Cash Inflows (Paid Invoices) vs. Operating Costs (Logged Expenses) month-over-month</p>
           </div>
 
-          <button
-            onClick={() => navigate('/clients')}
-            className="w-full mt-6 py-2 rounded-lg border border-gray-200 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-300 transition text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            <span>View All Ledger Logs</span>
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </button>
+          <div className="flex flex-col items-center justify-center gap-6 py-4">
+            {/* SVG Comparison Graph */}
+            <div className="h-32 w-full flex items-end justify-between relative px-4 border-b border-gray-100 dark:border-white/5 pb-1">
+              {/* Grid guide */}
+              <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-gray-100 dark:border-white/5" />
+              
+              {/* Bars representation */}
+              <div className="flex flex-col items-center gap-1.5 w-12">
+                <div className="flex gap-1 h-20 items-end">
+                  <div className="w-3.5 bg-blue-600 rounded-t h-12" />
+                  <div className="w-3.5 bg-indigo-500/40 rounded-t h-4" />
+                </div>
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Feb</span>
+              </div>
+
+              <div className="flex flex-col items-center gap-1.5 w-12">
+                <div className="flex gap-1 h-20 items-end">
+                  <div className="w-3.5 bg-blue-600 rounded-t h-16" />
+                  <div className="w-3.5 bg-indigo-500/40 rounded-t h-6" />
+                </div>
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Mar</span>
+              </div>
+
+              <div className="flex flex-col items-center gap-1.5 w-12">
+                <div className="flex gap-1 h-20 items-end">
+                  <div className="w-3.5 bg-blue-600 rounded-t h-20" />
+                  <div className="w-3.5 bg-indigo-500/40 rounded-t h-8" />
+                </div>
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Apr</span>
+              </div>
+
+              <div className="flex flex-col items-center gap-1.5 w-12">
+                <div className="flex gap-1 h-20 items-end">
+                  <div className="w-3.5 bg-blue-600 rounded-t h-14" />
+                  <div className="w-3.5 bg-indigo-500/40 rounded-t h-10" />
+                </div>
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">May</span>
+              </div>
+
+              <div className="flex flex-col items-center gap-1.5 w-12">
+                <div className="flex gap-1 h-20 items-end">
+                  <div className="w-3.5 bg-blue-600 rounded-t h-24" />
+                  <div className="w-3.5 bg-indigo-500/40 rounded-t h-6" />
+                </div>
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Jun</span>
+              </div>
+            </div>
+
+            {/* Legend tags */}
+            <div className="flex items-center gap-4 text-xs font-semibold">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded bg-blue-600" />
+                <span className="text-gray-700 dark:text-gray-300">Cash Inflows</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded bg-indigo-500/40" />
+                <span className="text-gray-700 dark:text-gray-300">Operating Costs</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

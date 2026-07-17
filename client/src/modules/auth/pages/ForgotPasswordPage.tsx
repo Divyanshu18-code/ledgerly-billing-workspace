@@ -42,11 +42,11 @@ export const ForgotPasswordPage: React.FC = () => {
   return (
     <div className="flex min-h-screen flex-col justify-center items-center py-12 sm:px-6 lg:px-8 bg-[#0c0a0f] bg-gradient-to-br from-[#0c0a0f] via-[#120f18] to-[#08070b] relative overflow-hidden">
       {/* Decorative blurs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md mb-6 flex flex-col items-center relative z-10">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg font-bold text-xl mb-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg font-bold text-xl mb-3">
           L
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-white font-heading">Ledgerly</h1>
@@ -67,19 +67,19 @@ export const ForgotPasswordPage: React.FC = () => {
               </div>
 
               {/* Dev Helper Token card */}
-              <div className="p-4 rounded-xl border border-violet-500/20 bg-violet-500/5 text-left space-y-3">
-                <span className="inline-block px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-violet-500/20 text-violet-300 rounded-full">
+              <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 text-left space-y-3">
+                <span className="inline-block px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 rounded-full">
                   Developer Helper
                 </span>
                 <p className="text-xs text-gray-300">
                   Because this is running in a local demo environment, copy the reset link below to reset the password:
                 </p>
-                <div className="p-2.5 rounded bg-black/60 font-mono text-[10px] text-violet-300 break-all select-all border border-white/5">
+                <div className="p-2.5 rounded bg-black/60 font-mono text-[10px] text-blue-300 break-all select-all border border-white/5">
                   {window.location.origin}/reset-password?token={successData.resetToken}
                 </div>
                 <Link
                   to={`/reset-password?token=${successData.resetToken}`}
-                  className="block text-center text-xs font-bold text-white py-2 rounded bg-violet-600 hover:bg-violet-500 transition cursor-pointer"
+                  className="block text-center text-xs font-bold text-white py-2 rounded bg-blue-600 hover:bg-blue-500 transition cursor-pointer"
                 >
                   Proceed to Reset Screen
                 </Link>
@@ -119,7 +119,7 @@ export const ForgotPasswordPage: React.FC = () => {
                       type="email"
                       {...register('email')}
                       placeholder="name@company.com"
-                      className="w-full pl-10 pr-4 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+                      className="w-full pl-10 pr-4 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
                     />
                   </div>
                   {errors.email && (
@@ -130,7 +130,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center py-3 px-4 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:opacity-50 transition shadow-lg cursor-pointer text-sm"
+                  className="w-full flex items-center justify-center py-3 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition shadow-lg cursor-pointer text-sm"
                 >
                   {isSubmitting ? (
                     <Loader2 className="h-5 w-5 animate-spin mr-2" />
@@ -142,7 +142,7 @@ export const ForgotPasswordPage: React.FC = () => {
               <div className="mt-8 text-center text-sm text-gray-400">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 font-medium transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Return to Sign In

@@ -59,11 +59,11 @@ export const ResetPasswordPage: React.FC = () => {
   return (
     <div className="flex min-h-screen flex-col justify-center items-center py-12 sm:px-6 lg:px-8 bg-[#0c0a0f] bg-gradient-to-br from-[#0c0a0f] via-[#120f18] to-[#08070b] relative overflow-hidden">
       {/* Decorative blurs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md mb-6 flex flex-col items-center relative z-10">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg font-bold text-xl mb-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg font-bold text-xl mb-3">
           L
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-white font-heading">Ledgerly</h1>
@@ -105,7 +105,7 @@ export const ResetPasswordPage: React.FC = () => {
               <div className="pt-2">
                 <button
                   onClick={() => navigate('/login')}
-                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold transition shadow-lg shadow-violet-500/15 cursor-pointer text-xs"
+                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold transition shadow-lg shadow-blue-500/15 cursor-pointer text-xs"
                 >
                   Proceed to Sign In
                 </button>
@@ -135,7 +135,7 @@ export const ResetPasswordPage: React.FC = () => {
                       type={showPassword ? 'text' : 'password'}
                       {...register('password')}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-10 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+                      className="w-full pl-10 pr-10 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
                     />
                     <button
                       type="button"
@@ -160,7 +160,7 @@ export const ResetPasswordPage: React.FC = () => {
                       type={showPassword ? 'text' : 'password'}
                       {...register('confirmPassword')}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-10 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition text-sm"
+                      className="w-full pl-10 pr-10 py-3 rounded-lg border border-white/10 bg-[#16151a] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
                     />
                   </div>
                   {errors.confirmPassword && (
@@ -171,7 +171,7 @@ export const ResetPasswordPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center py-3 px-4 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:opacity-50 transition shadow-lg cursor-pointer text-sm"
+                  className="w-full flex items-center justify-center py-3 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition shadow-lg cursor-pointer text-sm"
                 >
                   {isSubmitting ? (
                     <Loader2 className="h-5 w-5 animate-spin mr-2" />

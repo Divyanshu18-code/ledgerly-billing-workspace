@@ -21,8 +21,8 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
   return (
     <div className="relative overflow-hidden h-full flex flex-col justify-between">
       {/* Background glowing blobs */}
-      <div className="absolute top-[-10%] right-[-10%] w-[350px] h-[350px] bg-violet-600/5 dark:bg-violet-600/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[350px] h-[350px] bg-indigo-600/5 dark:bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-10%] w-[350px] h-[350px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[350px] h-[350px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Breadcrumbs & Header */}
       <div className="relative z-10 space-y-6">
@@ -35,10 +35,10 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
           ))}
         </div>
 
-        <div className="flex items-center gap-4 pb-6 border-b border-gray-200 dark:border-white/10">
+        <div className="flex items-center gap-4 pb-6 border-b border-gray-100 dark:border-white/10">
           <button
-            onClick={() => navigate('/dashboard')}
-            className="p-2 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-300 transition cursor-pointer"
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-lg border border-gray-100 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-300 transition cursor-pointer"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -51,11 +51,11 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
 
       {/* Main Illustration & Card Content */}
       <div className="flex-1 flex flex-col items-center justify-center py-16 relative z-10 max-w-md mx-auto text-center">
-        <div className="h-20 w-20 rounded-2xl bg-gradient-to-tr from-violet-500/10 to-indigo-500/10 dark:from-violet-500/20 dark:to-indigo-500/20 border border-violet-100 dark:border-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400 shadow-xl shadow-violet-500/5 mb-6 animate-pulse">
+        <div className="h-20 w-20 rounded-2xl bg-gradient-to-tr from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 border border-blue-100 dark:border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-xl shadow-blue-500/5 mb-6 animate-pulse">
           <Icon className="h-10 w-10" />
         </div>
 
-        <span className="inline-block px-3 py-1 text-[11px] font-bold uppercase tracking-widest rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-100 dark:border-violet-500/10 mb-3">
+        <span className="inline-block px-3 py-1 text-[11px] font-bold uppercase tracking-widest rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/10 mb-3">
           Coming Soon
         </span>
         
@@ -69,7 +69,7 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
 
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 px-5 py-3 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold transition shadow-lg shadow-violet-500/15 cursor-pointer text-sm"
+          className="flex items-center gap-2 px-5 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold transition shadow-lg shadow-blue-500/15 cursor-pointer text-sm"
         >
           <LayoutDashboard className="h-4.5 w-4.5" />
           Back to Dashboard

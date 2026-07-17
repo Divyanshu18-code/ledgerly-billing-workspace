@@ -23,6 +23,8 @@ model User {
   updatedAt         DateTime          @updatedAt
   workspaceMembers  WorkspaceMember[]
   auditLogs         AuditLog[]
+  createdWorkspaces Workspace[]       @relation(name: "WorkspaceCreatedBy")
+  sentInvitations   WorkspaceInvitation[] @relation(name: "InvitedBy")
 }
 
 model Workspace {
@@ -46,6 +48,12 @@ model Workspace {
   expenses         Expense[]
   taxRates         TaxRate[]
   auditLogs        AuditLog[]
+  financialYear    String            @default("2026-2027")
+  isArchived       Boolean           @default(false)
+  deletedAt        DateTime?
+  createdById      String?
+  createdBy        User?             @relation(name: "WorkspaceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  invitations      WorkspaceInvitation[]
 }
 
 enum Role {
@@ -233,4 +241,21 @@ model AuditLog {
   action      String
   description String
   createdAt   DateTime  @default(now())
+}
+
+model WorkspaceInvitation {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email       String
+  role        Role
+  token       String    @unique
+  invitedById String
+  invitedBy   User      @relation(name: "InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+  status      String    @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([workspaceId, email])
 }
