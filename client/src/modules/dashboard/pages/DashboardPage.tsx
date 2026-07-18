@@ -28,7 +28,7 @@ export const DashboardPage: React.FC = () => {
   const currencySymbol = workspace?.currency === 'INR' ? '₹' : '$';
   
   // Dynamic metrics computed from active workspace
-  const totalClientsCount = clients?.length || 5;
+  const totalClientsCount = clients?.pagination?.total ?? (Array.isArray(clients) ? clients.length : 5);
   const totalProductsCount = products?.length || 12;
 
   const metrics = [

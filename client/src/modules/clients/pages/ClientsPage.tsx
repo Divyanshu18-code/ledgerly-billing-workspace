@@ -1,210 +1,387 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   useClientsQuery,
   useCreateClientMutation,
   useUpdateClientMutation,
   useDeleteClientMutation,
-  type Client,
 } from '../hooks/useClients';
+import type { Client } from '../hooks/useClients';
 import { ClientForm } from '../components/ClientForm';
-import { Plus, Search, Trash2, Edit3, Mail, Phone, MapPin, Building, Loader2, ArrowLeft } from 'lucide-react';
+import type { ClientFormData } from '../components/ClientForm';
+import { ClientDetailsModal } from '../components/ClientDetailsModal';
+import {
+  Plus,
+  Search,
+  Trash2,
+  Edit3,
+  Mail,
+  Phone,
+  MapPin,
+  Building,
+  Loader2,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  AlertTriangle,
+  Filter,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const ClientsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { data: clients, isLoading, error } = useClientsQuery();
+
+  // Search, Filter, and Pagination States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  const [page, setPage] = useState(1);
+  const limit = 8;
+
+  // Debounce search query changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1); // Reset to first page on search change
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Query Hook
+  const { data, isLoading, isError } = useClientsQuery({
+    page,
+    limit,
+    search: debouncedSearch,
+    status: statusFilter === 'ALL' ? undefined : statusFilter,
+  });
+
+  const clients = data?.clients || [];
+  const pagination = data?.pagination || { total: 0, page: 1, limit: 8, totalPages: 1 };
+
+  // Mutations
   const createMutation = useCreateClientMutation();
   const updateMutation = useUpdateClientMutation();
   const deleteMutation = useDeleteClientMutation();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Modal States
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [viewingClient, setViewingClient] = useState<Client | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  const filteredClients = clients?.filter(
-    (c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const handleFormSubmit = async (data: any) => {
+  const showFeedback = (type: 'success' | 'error', message: string) => {
+    setFeedbackMsg({ type, message });
+    setTimeout(() => setFeedbackMsg(null), 3500);
+  };
+
+  const handleFormSubmit = async (formData: ClientFormData) => {
     try {
       if (editingClient) {
-        await updateMutation.mutateAsync({ id: editingClient.id, data });
+        await updateMutation.mutateAsync({ id: editingClient.id, data: formData });
+        showFeedback('success', 'Client updated successfully');
       } else {
-        await createMutation.mutateAsync(data);
+        await createMutation.mutateAsync(formData);
+        showFeedback('success', 'New client registered successfully');
       }
-      closeModal();
-    } catch (err) {
-      console.error(err);
+      closeFormModal();
+    } catch (err: any) {
+      showFeedback('error', err.response?.data?.message || 'Failed to save client. Please try again.');
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this client?')) {
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       try {
         await deleteMutation.mutateAsync(id);
-      } catch (err) {
-        console.error(err);
+        showFeedback('success', 'Client deleted successfully');
+      } catch (err: any) {
+        showFeedback('error', err.response?.data?.message || 'Failed to delete client');
       }
     }
   };
 
   const openCreateModal = () => {
     setEditingClient(null);
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
   };
 
   const openEditModal = (client: Client) => {
     setEditingClient(client);
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const openViewModal = (client: Client) => {
+    setViewingClient(client);
+    setIsDetailsModalOpen(true);
+  };
+
+  const closeFormModal = () => {
+    setIsFormModalOpen(false);
     setEditingClient(null);
   };
 
+  const formatAddressSummary = (client: Client) => {
+    if (client.city || client.state || client.country) {
+      return [client.city, client.state, client.country].filter(Boolean).join(', ');
+    }
+    if (typeof client.billingAddress === 'string') return client.billingAddress;
+    if (typeof client.billingAddress === 'object' && client.billingAddress) {
+      const addr = client.billingAddress as any;
+      return [addr.city, addr.state, addr.country].filter(Boolean).join(', ');
+    }
+    return 'Location not specified';
+  };
+
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden space-y-6">
       {/* Background radial glow */}
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[150px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto relative z-10 space-y-8">
+      <div className="max-w-6xl mx-auto relative z-10 space-y-6">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-100 dark:border-white/10">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100 dark:border-white/10">
+          <div className="flex items-center gap-3.5">
             <button
               onClick={() => navigate(-1)}
               className="p-2 rounded-lg border border-gray-100 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+              title="Go Back"
             >
               <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight font-heading text-gray-900 dark:text-white">Clients</h1>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage and bill your customers</p>
+              <h1 className="text-2xl font-bold tracking-tight font-heading text-gray-900 dark:text-white">Clients Directory</h1>
+              <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">Manage customer profiles, billing locations, and tax credentials</p>
             </div>
           </div>
+
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 px-5 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium transition shadow-lg shadow-blue-500/10 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs shadow-md transition cursor-pointer"
           >
-            <Plus className="h-5 w-5" />
-            Add Client
+            <Plus className="h-4 w-4" />
+            <span>Add Client</span>
           </button>
         </div>
 
-        {/* Filter and Search */}
-        <div className="flex items-center relative max-w-md">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-            <Search className="h-5 w-5" />
-          </span>
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-100 dark:border-white/10 bg-white dark:bg-card/60 backdrop-blur-md text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
-          />
+        {/* Feedback Alert Messages */}
+        {feedbackMsg && (
+          <div
+            className={`p-3.5 rounded-lg text-xs font-semibold flex items-center justify-between border ${
+              feedbackMsg.type === 'success'
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                : 'bg-red-500/10 border-red-500/20 text-red-500 dark:text-red-400'
+            }`}
+          >
+            <span>{feedbackMsg.message}</span>
+          </div>
+        )}
+
+        {/* Filter and Search Bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+          <div className="flex items-center relative flex-1 max-w-md">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+              <Search className="h-4 w-4" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search by name, company, email, phone or GST..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-card text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-xs"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 font-semibold pr-1">
+              <Filter className="h-3.5 w-3.5" />
+              <span>Status:</span>
+            </div>
+            <div className="flex rounded-lg border border-gray-200 dark:border-white/10 p-0.5 bg-gray-50 dark:bg-card text-xs font-semibold">
+              {(['ALL', 'ACTIVE', 'INACTIVE'] as const).map((st) => (
+                <button
+                  key={st}
+                  onClick={() => {
+                    setStatusFilter(st);
+                    setPage(1);
+                  }}
+                  className={`px-3 py-1 rounded-md transition cursor-pointer text-xs ${
+                    statusFilter === st
+                      ? 'bg-blue-600 text-white shadow-xs font-bold'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  {st === 'ALL' ? 'All' : st === 'ACTIVE' ? 'Active' : 'Inactive'}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Clients List/Grid */}
+        {/* Clients List Grid */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
-            <p className="text-gray-500 dark:text-gray-400 text-sm">Loading clients data...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-3" />
+            <p className="text-gray-500 dark:text-gray-400 text-xs">Loading clients database...</p>
           </div>
-        ) : error ? (
-          <div className="p-4 rounded-lg border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-center text-sm">
-            Failed to load clients. Please check your backend connection.
+        ) : isError ? (
+          <div className="p-4 rounded-lg border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-center text-xs flex items-center justify-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            <span>Failed to load clients. Please check your backend connection.</span>
           </div>
-        ) : filteredClients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 border border-dashed border-gray-100 dark:border-white/10 rounded-2xl bg-white dark:bg-[#18181b]/20">
-            <Building className="h-16 w-16 text-gray-400 dark:text-gray-600 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No Clients Found</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xs text-center mb-6">
-              {searchQuery ? 'Try adjusting your search filter.' : 'Add your first customer to start creating invoices.'}
+        ) : clients.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 border border-dashed border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-card/40">
+            <Building className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1 font-heading">No Clients Found</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-xs max-w-xs text-center mb-5">
+              {searchQuery || statusFilter !== 'ALL'
+                ? 'No client profiles match your filter options.'
+                : 'Register your first customer to start creating invoices and quotations.'}
             </p>
-            {!searchQuery && (
+            {!searchQuery && statusFilter === 'ALL' && (
               <button
                 onClick={openCreateModal}
-                className="px-5 py-2.5 rounded-lg bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition text-sm font-medium cursor-pointer"
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition text-xs font-bold cursor-pointer"
               >
-                Add Client
+                Add First Client
               </button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredClients.map((client) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {clients.map((client) => (
               <div
                 key={client.id}
-                className="p-6 rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-card/60 backdrop-blur-md hover:border-blue-500/40 dark:hover:border-blue-500/50 hover:shadow-lg dark:hover:shadow-blue-500/5 transition flex flex-col justify-between"
+                className="p-5 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-card hover:border-blue-500/40 dark:hover:border-blue-500/50 hover:shadow-lg transition flex flex-col justify-between"
               >
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{client.name}</h3>
-                      {client.taxNumber && (
-                        <span className="inline-block mt-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-blue-100 dark:border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                          Tax ID: {client.taxNumber}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-bold text-gray-900 dark:text-white font-heading">{client.name}</h3>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 text-xxs font-extrabold rounded-full border uppercase tracking-wider ${
+                            client.status === 'ACTIVE'
+                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-gray-500/10 border-gray-500/20 text-gray-500 dark:text-gray-400'
+                          }`}
+                        >
+                          {client.status}
                         </span>
-                      )}
+                      </div>
+                      {client.companyName ? (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5 flex items-center gap-1">
+                          <Building className="h-3 w-3" />
+                          <span>{client.companyName}</span>
+                        </p>
+                      ) : null}
                     </div>
-                    <div className="flex gap-1">
+
+                    <div className="flex items-center gap-1">
                       <button
-                        onClick={() => openEditModal(client)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+                        onClick={() => openViewModal(client)}
+                        className="p-1.5 rounded-lg border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
+                        title="View Details"
                       >
-                        <Edit3 className="h-4 w-4" />
+                        <Eye className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDelete(client.id)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/5 transition cursor-pointer"
+                        onClick={() => openEditModal(client)}
+                        className="p-1.5 rounded-lg border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition cursor-pointer"
+                        title="Edit Client"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Edit3 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(client.id, client.name)}
+                        className="p-1.5 rounded-lg border border-red-500/10 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition cursor-pointer"
+                        title="Delete Client"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
 
-                  <div className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="space-y-1.5 text-xs text-gray-500 dark:text-gray-400 pt-1">
                     <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-blue-550 dark:text-blue-400" />
-                      <span>{client.email}</span>
+                      <Mail className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+                      <span className="truncate">{client.email}</span>
                     </div>
                     {client.phone && (
                       <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-blue-550 dark:text-blue-400" />
+                        <Phone className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
                         <span>{client.phone}</span>
                       </div>
                     )}
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-blue-550 dark:text-blue-400 mt-0.5" />
-                      <span>
-                        {client.billingAddress.street}, {client.billingAddress.city},{' '}
-                        {client.billingAddress.state}, {client.billingAddress.country} -{' '}
-                        {client.billingAddress.postalCode}
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+                      <span className="truncate">{formatAddressSummary(client)}</span>
                     </div>
                   </div>
                 </div>
+
+                {client.taxNumber && (
+                  <div className="mt-3 pt-2 border-t border-gray-50 dark:border-white/5 flex items-center justify-between text-xxs">
+                    <span className="text-gray-400 uppercase font-semibold">Tax ID / GSTIN:</span>
+                    <span className="font-bold text-gray-800 dark:text-gray-300 font-mono">{client.taxNumber}</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
 
-        {/* Modal Form Dialog */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/60 backdrop-blur-sm overflow-y-auto">
-            <div className="w-full max-w-2xl p-8 rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-card shadow-2xl overflow-y-auto max-h-[90vh]">
+        {/* Pagination Control Bar */}
+        {pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-gray-100 dark:border-white/10 pt-4 text-xs text-gray-500 dark:text-gray-400">
+            <div>
+              Showing <span className="font-bold text-gray-900 dark:text-white">{(pagination.page - 1) * pagination.limit + 1}</span> to{' '}
+              <span className="font-bold text-gray-900 dark:text-white">
+                {Math.min(pagination.page * pagination.limit, pagination.total)}
+              </span>{' '}
+              of <span className="font-bold text-gray-900 dark:text-white">{pagination.total}</span> clients
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-white/5 transition font-semibold cursor-pointer"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Prev</span>
+              </button>
+
+              <div className="flex items-center gap-1 px-2 font-bold text-gray-800 dark:text-gray-200">
+                <span>{pagination.page}</span>
+                <span>/</span>
+                <span>{pagination.totalPages}</span>
+              </div>
+
+              <button
+                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                disabled={page === pagination.totalPages}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-white/5 transition font-semibold cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Form Dialog for Create/Edit */}
+        {isFormModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+            <div className="w-full max-w-3xl p-6 rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-card shadow-2xl overflow-y-auto max-h-[90vh]">
               <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-white/10 mb-6">
-                <h2 className="text-2xl font-bold font-heading text-gray-900 dark:text-white">
+                <h2 className="text-xl font-bold font-heading text-gray-900 dark:text-white">
                   {editingClient ? 'Edit Client Profile' : 'Register New Client'}
                 </h2>
                 <button
-                  onClick={closeModal}
-                  className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition text-2xl font-medium cursor-pointer"
+                  onClick={closeFormModal}
+                  className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition text-xl font-medium cursor-pointer"
                 >
                   &times;
                 </button>
@@ -212,12 +389,20 @@ export const ClientsPage: React.FC = () => {
               <ClientForm
                 initialData={editingClient || undefined}
                 onSubmit={handleFormSubmit}
-                onCancel={closeModal}
+                onCancel={closeFormModal}
                 isSubmitting={createMutation.isPending || updateMutation.isPending}
               />
             </div>
           </div>
         )}
+
+        {/* Details View Modal */}
+        <ClientDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={() => setIsDetailsModalOpen(false)}
+          client={viewingClient}
+          onEdit={(c) => openEditModal(c)}
+        />
       </div>
     </div>
   );

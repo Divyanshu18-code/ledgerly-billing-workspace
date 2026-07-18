@@ -23,8 +23,9 @@ model User {
   updatedAt         DateTime          @updatedAt
   workspaceMembers  WorkspaceMember[]
   auditLogs         AuditLog[]
-  createdWorkspaces Workspace[]       @relation(name: "WorkspaceCreatedBy")
+  createdWorkspaces Workspace[]           @relation(name: "WorkspaceCreatedBy")
   sentInvitations   WorkspaceInvitation[] @relation(name: "InvitedBy")
+  createdClients    Client[]              @relation(name: "ClientCreatedBy")
 }
 
 model Workspace {
@@ -76,20 +77,36 @@ model WorkspaceMember {
   @@unique([workspaceId, userId])
 }
 
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+}
+
 model Client {
-  id             String      @id @default(uuid())
-  workspaceId    String
-  workspace      Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  name           String
-  email          String
-  phone          String?
-  taxNumber      String?
-  billingAddress Json
-  shippingAddress Json?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  invoices       Invoice[]
-  quotations     Quotation[]
+  id              String       @id @default(uuid())
+  workspaceId     String
+  workspace       Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name            String
+  companyName     String?
+  email           String
+  phone           String?
+  taxNumber       String?
+  billingAddress  String?
+  shippingAddress String?
+  country         String?
+  state           String?
+  city            String?
+  postalCode      String?
+  notes           String?
+  status          ClientStatus @default(ACTIVE)
+  isArchived      Boolean      @default(false)
+  deletedAt       DateTime?
+  createdById     String?
+  createdBy       User?        @relation(name: "ClientCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  invoices        Invoice[]
+  quotations      Quotation[]
 
   @@unique([workspaceId, email])
 }

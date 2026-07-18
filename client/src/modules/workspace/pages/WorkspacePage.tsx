@@ -70,7 +70,7 @@ export const WorkspacePage: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
-  const [shouldPreFill, setShouldPreFill] = useState(true);
+  const [shouldPreFill, setShouldPreFill] = useState(false);
 
   // Dropdown open states
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
@@ -686,7 +686,7 @@ export const WorkspacePage: React.FC = () => {
             )}
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-white/5">
+          <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-white/5 min-h-[240px] pb-28">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-white/5 text-xxs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">
@@ -729,7 +729,7 @@ export const WorkspacePage: React.FC = () => {
                             </button>
 
                             {activeMemberDropdownId === member.id && (
-                              <div className="absolute left-0 z-30 mt-1 w-32 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-[#18181b] p-1 shadow-2xl animate-fade-in animate-zoom-in">
+                              <div className="absolute left-0 z-50 mt-1 w-32 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-[#18181b] p-1 shadow-2xl animate-fade-in animate-zoom-in">
                                 {roleOptions.map((opt) => (
                                   <button
                                     key={opt.value}

@@ -1,10 +1,10 @@
-import { clientsRepository } from './repositories/clients.repository';
+import { clientsRepository, FindClientsOptions } from './repositories/clients.repository';
 import { ApiError } from '~/utils/errors';
-import { Prisma } from '@prisma/client';
+import { ClientStatus } from '@prisma/client';
 
 export class ClientsService {
-  async getClients(workspaceId: string) {
-    return clientsRepository.findMany(workspaceId);
+  async getClients(workspaceId: string, options: FindClientsOptions = {}) {
+    return clientsRepository.findMany(workspaceId, options);
   }
 
   async getClientById(id: string, workspaceId: string) {
@@ -17,13 +17,21 @@ export class ClientsService {
 
   async createClient(
     workspaceId: string,
+    userId: string,
     data: {
       name: string;
+      companyName?: string;
       email: string;
       phone?: string;
       taxNumber?: string;
-      billingAddress: any;
+      billingAddress?: any;
       shippingAddress?: any;
+      country?: string;
+      state?: string;
+      city?: string;
+      postalCode?: string;
+      notes?: string;
+      status?: ClientStatus;
     }
   ) {
     const existingClient = await clientsRepository.findByEmail(data.email, workspaceId);
@@ -31,18 +39,32 @@ export class ClientsService {
       throw ApiError.badRequest('A client with this email already exists in this workspace');
     }
 
-    return clientsRepository.create(workspaceId, data);
+    return clientsRepository.create(workspaceId, userId, data);
   }
 
   async updateClient(
     id: string,
     workspaceId: string,
-    data: Prisma.ClientUpdateInput & { email?: string }
+    data: {
+      name?: string;
+      companyName?: string;
+      email?: string;
+      phone?: string;
+      taxNumber?: string;
+      billingAddress?: any;
+      shippingAddress?: any;
+      country?: string;
+      state?: string;
+      city?: string;
+      postalCode?: string;
+      notes?: string;
+      status?: ClientStatus;
+    }
   ) {
-    // Check if client exists
+    // Verify client exists in this workspace
     await this.getClientById(id, workspaceId);
 
-    // If changing email, check for duplicate
+    // If changing email, check for duplicate within workspace
     if (data.email) {
       const existingClient = await clientsRepository.findByEmail(data.email, workspaceId);
       if (existingClient && existingClient.id !== id) {
@@ -55,7 +77,7 @@ export class ClientsService {
 
   async deleteClient(id: string, workspaceId: string) {
     await this.getClientById(id, workspaceId);
-    return clientsRepository.delete(id, workspaceId);
+    return clientsRepository.softDelete(id, workspaceId);
   }
 }
 
