@@ -37,15 +37,12 @@ export class AuthController {
         workspaceName,
       });
 
-      setRefreshTokenCookie(res, result.refreshToken);
-
       res.status(201).json({
         status: 'success',
         message: 'User registered successfully. Please verify your email.',
         data: {
           user: result.user,
           workspace: result.workspace,
-          accessToken: result.accessToken,
         },
       });
     } catch (error) {
@@ -91,6 +88,28 @@ export class AuthController {
       res.status(200).json({
         status: 'success',
         message: 'Email verified successfully. You can now log in.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resendVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Email is required',
+        });
+        return;
+      }
+
+      await authService.resendVerification(email);
+
+      res.status(200).json({
+        status: 'success',
+        message: 'Verification link sent successfully. Please check your email.',
       });
     } catch (error) {
       next(error);
@@ -143,12 +162,11 @@ export class AuthController {
   async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { email } = req.body;
-      const resetToken = await authService.forgotPassword(email);
+      await authService.forgotPassword(email);
 
       res.status(200).json({
         status: 'success',
-        message: 'Password reset link sent (simulated)',
-        data: { resetToken },
+        message: 'If an account exists with that email, a password recovery link has been sent.',
       });
     } catch (error) {
       next(error);

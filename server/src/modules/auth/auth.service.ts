@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { authRepository } from './repositories/auth.repository';
 import { ApiError } from '~/utils/errors';
 import { prisma } from '~/config/db';
+import { logMail } from '~/utils/mail';
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'access_secret';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh_secret';
@@ -36,7 +37,16 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(data.password, 10);
     const workspaceName = (data.workspaceName && data.workspaceName.trim()) || `${data.firstName}'s Workspace`;
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isVerified = !isProduction;
+    const verificationToken = isProduction ? crypto.randomBytes(32).toString('hex') : null;
+    const hashedVerificationToken = verificationToken
+      ? crypto.createHash('sha256').update(verificationToken).digest('hex')
+      : null;
+    const verificationTokenExp = isProduction
+      ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+      : null;
 
     const { user, workspace } = await authRepository.createUserWithWorkspace(
       {
@@ -44,13 +54,22 @@ export class AuthService {
         passwordHash,
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
-        isVerified: true, // Auto-verified for seamless development onboarding
-        verificationToken,
+        isVerified,
+        verificationToken: hashedVerificationToken,
+        verificationTokenExp,
       },
       workspaceName
     );
 
-    const { accessToken, refreshToken } = this.generateTokens(user.id, user.email);
+    if (!isVerified && verificationToken) {
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const verificationLink = `${clientUrl}/verify-email?token=${verificationToken}`;
+      logMail(
+        user.email,
+        'Verify your email address',
+        `Welcome to Ledgerly! Please verify your email by clicking the following link:\n${verificationLink}`
+      );
+    }
 
     return {
       user: {
@@ -59,32 +78,46 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         isVerified: user.isVerified,
-        verificationToken: user.verificationToken,
       },
       workspace: {
         id: workspace.id,
         name: workspace.name,
       },
-      accessToken,
-      refreshToken,
     };
   }
 
   async login(data: { email: string; password: string }) {
     const normalizedEmail = data.email.trim().toLowerCase();
     const user = await authRepository.findByEmail(normalizedEmail);
+console.log('AuthService.login - retrieved user:', { id: user?.id, email: user?.email, isVerified: user?.isVerified, loginAttempts: user?.loginAttempts, lockUntil: user?.lockUntil });
     if (!user) {
       throw ApiError.unauthorized('Invalid email or password');
     }
 
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
+      throw ApiError.forbidden(`Account is temporarily locked. Please try again in ${minutesLeft} minutes.`);
+    }
+
     const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
     if (!isPasswordValid) {
+      const loginAttempts = user.loginAttempts + 1;
+      const lockUntil = loginAttempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null;
+      await authRepository.updateUser(user.id, { loginAttempts, lockUntil });
+      
+      if (lockUntil) {
+        throw ApiError.forbidden('Account is temporarily locked due to too many failed attempts. Please try again in 15 minutes.');
+      }
       throw ApiError.unauthorized('Invalid email or password');
     }
 
     if (!user.isVerified) {
+  console.log('AuthService.login - user not verified:', { id: user.id, email: user.email, isVerified: user.isVerified });
       throw ApiError.forbidden('Please verify your email address before logging in');
     }
+
+    // Reset lockout counters on successful login
+    await authRepository.updateUser(user.id, { loginAttempts: 0, lockUntil: null });
 
     // Fetch user's first workspace membership
     const membership = await prisma.workspaceMember.findFirst({
@@ -116,15 +149,50 @@ export class AuthService {
   }
 
   async verifyEmail(token: string): Promise<void> {
-    const user = await authRepository.findByVerificationToken(token);
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await authRepository.findByVerificationToken(hashedToken);
     if (!user) {
       throw ApiError.badRequest('Invalid or expired verification token');
+    }
+
+    if (user.verificationTokenExp && user.verificationTokenExp < new Date()) {
+      throw ApiError.badRequest('Verification link has expired. Please request a new one.');
     }
 
     await authRepository.updateUser(user.id, {
       isVerified: true,
       verificationToken: null,
+      verificationTokenExp: null,
     });
+  }
+
+  async resendVerification(email: string): Promise<void> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await authRepository.findByEmail(normalizedEmail);
+    if (!user) {
+      throw ApiError.notFound('User with this email does not exist');
+    }
+
+    if (user.isVerified) {
+      throw ApiError.badRequest('Email is already verified. Please sign in.');
+    }
+
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    const verificationTokenExp = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await authRepository.updateUser(user.id, {
+      verificationToken: hashedVerificationToken,
+      verificationTokenExp,
+    });
+
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const verificationLink = `${clientUrl}/verify-email?token=${verificationToken}`;
+    logMail(
+      user.email,
+      'Verify your email address (New Link)',
+      `Please verify your email by clicking the following link:\n${verificationLink}`
+    );
   }
 
   async refresh(token: string) {
@@ -155,25 +223,33 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(email: string): Promise<string> {
-    const user = await authRepository.findByEmail(email);
+  async forgotPassword(email: string): Promise<void> {
+    const user = await authRepository.findByEmail(email.trim().toLowerCase());
     if (!user) {
       throw ApiError.notFound('User with this email does not exist');
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     const resetTokenExp = new Date(Date.now() + 3600000); // 1 hour expiry
 
     await authRepository.updateUser(user.id, {
-      resetToken,
+      resetToken: hashedResetToken,
       resetTokenExp,
     });
 
-    return resetToken;
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
+    logMail(
+      user.email,
+      'Reset your password',
+      `You requested a password reset. Please click the following link to reset your password:\n${resetLink}`
+    );
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    const user = await authRepository.findByResetToken(token);
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await authRepository.findByResetToken(hashedToken);
     if (!user || !user.resetTokenExp || user.resetTokenExp < new Date()) {
       throw ApiError.badRequest('Password reset token is invalid or has expired');
     }

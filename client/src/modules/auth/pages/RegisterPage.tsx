@@ -6,7 +6,7 @@ export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleRegisterSuccess = () => {
-    navigate('/dashboard');
+    navigate('/login?verifyPending=true');
   };
 
   const handleNavigateToLogin = () => {

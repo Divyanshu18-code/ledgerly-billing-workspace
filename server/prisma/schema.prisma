@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,82 +7,71 @@ datasource db {
 }
 
 model User {
-  id                String            @id @default(uuid())
-  email             String            @unique
-  passwordHash      String
-  firstName         String
-  lastName          String
-  isVerified        Boolean           @default(false)
-  verificationToken String?
-  resetToken        String?
-  resetTokenExp     DateTime?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  workspaceMembers  WorkspaceMember[]
-  auditLogs         AuditLog[]
-  createdWorkspaces Workspace[]           @relation(name: "WorkspaceCreatedBy")
-  sentInvitations   WorkspaceInvitation[] @relation(name: "InvitedBy")
-  createdClients    Client[]              @relation(name: "ClientCreatedBy")
+  id                   String                @id @default(uuid())
+  email                String                @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  isVerified           Boolean               @default(false)
+  verificationToken    String?
+  resetToken           String?
+  resetTokenExp        DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  verificationTokenExp DateTime?
+  lockUntil            DateTime?
+  loginAttempts        Int                   @default(0)
+  auditLogs            AuditLog[]
+  createdClients       Client[]              @relation("ClientCreatedBy")
+  createdWorkspaces    Workspace[]           @relation("WorkspaceCreatedBy")
+  sentInvitations      WorkspaceInvitation[] @relation("InvitedBy")
+  workspaceMembers     WorkspaceMember[]
 }
 
 model Workspace {
-  id               String            @id @default(uuid())
+  id               String                @id @default(uuid())
   name             String
   logoUrl          String?
   gstNumber        String?
-  currency         String            @default("USD")
-  timezone         String            @default("UTC")
-  invoicePrefix    String            @default("INV-")
+  currency         String                @default("USD")
+  timezone         String                @default("UTC")
+  invoicePrefix    String                @default("INV-")
   address          String?
   phone            String?
   email            String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  workspaceMembers WorkspaceMember[]
-  clients          Client[]
-  products         Product[]
-  invoices         Invoice[]
-  quotations       Quotation[]
-  expenses         Expense[]
-  taxRates         TaxRate[]
-  auditLogs        AuditLog[]
-  financialYear    String            @default("2026-2027")
-  isArchived       Boolean           @default(false)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  financialYear    String                @default("2026-2027")
+  isArchived       Boolean               @default(false)
   deletedAt        DateTime?
   createdById      String?
-  createdBy        User?             @relation(name: "WorkspaceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  auditLogs        AuditLog[]
+  clients          Client[]
+  expenses         Expense[]
+  invoices         Invoice[]
+  products         Product[]
+  quotations       Quotation[]
+  taxRates         TaxRate[]
+  createdBy        User?                 @relation("WorkspaceCreatedBy", fields: [createdById], references: [id])
   invitations      WorkspaceInvitation[]
-}
-
-enum Role {
-  OWNER
-  ADMIN
-  ACCOUNTANT
-  MANAGER
-  VIEWER
+  workspaceMembers WorkspaceMember[]
 }
 
 model WorkspaceMember {
   id          String    @id @default(uuid())
   workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   role        Role
   createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, userId])
-}
-
-enum ClientStatus {
-  ACTIVE
-  INACTIVE
 }
 
 model Client {
   id              String       @id @default(uuid())
   workspaceId     String
-  workspace       Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   name            String
   companyName     String?
   email           String
@@ -102,9 +88,10 @@ model Client {
   isArchived      Boolean      @default(false)
   deletedAt       DateTime?
   createdById     String?
-  createdBy       User?        @relation(name: "ClientCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+  createdBy       User?        @relation("ClientCreatedBy", fields: [createdById], references: [id])
+  workspace       Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   invoices        Invoice[]
   quotations      Quotation[]
 
@@ -114,20 +101,156 @@ model Client {
 model Product {
   id             String          @id @default(uuid())
   workspaceId    String
-  workspace      Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
   name           String
   sku            String
   price          Decimal         @db.Decimal(10, 2)
   taxRateId      String?
-  taxRate        TaxRate?        @relation(fields: [taxRateId], references: [id], onDelete: SetNull)
   description    String?
   isService      Boolean         @default(false)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   invoiceItems   InvoiceItem[]
+  taxRate        TaxRate?        @relation(fields: [taxRateId], references: [id])
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id])
   quotationItems QuotationItem[]
 
   @@unique([workspaceId, sku])
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  workspaceId   String
+  clientId      String
+  invoiceNumber String
+  status        InvoiceStatus @default(DRAFT)
+  issueDate     DateTime
+  dueDate       DateTime
+  subTotal      Decimal       @db.Decimal(10, 2)
+  taxTotal      Decimal       @db.Decimal(10, 2)
+  discountTotal Decimal       @db.Decimal(10, 2)
+  grandTotal    Decimal       @db.Decimal(10, 2)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  client        Client        @relation(fields: [clientId], references: [id])
+  workspace     Workspace     @relation(fields: [workspaceId], references: [id])
+  items         InvoiceItem[]
+  payments      Payment[]
+
+  @@unique([workspaceId, invoiceNumber])
+}
+
+model InvoiceItem {
+  id             String  @id @default(uuid())
+  invoiceId      String
+  productId      String
+  quantity       Int
+  unitPrice      Decimal @db.Decimal(10, 2)
+  taxAmount      Decimal @db.Decimal(10, 2)
+  discountAmount Decimal @db.Decimal(10, 2)
+  totalAmount    Decimal @db.Decimal(10, 2)
+  invoice        Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product        Product @relation(fields: [productId], references: [id])
+}
+
+model Quotation {
+  id              String          @id @default(uuid())
+  workspaceId     String
+  clientId        String
+  quotationNumber String
+  status          QuotationStatus @default(DRAFT)
+  validUntil      DateTime
+  grandTotal      Decimal         @db.Decimal(10, 2)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  client          Client          @relation(fields: [clientId], references: [id])
+  workspace       Workspace       @relation(fields: [workspaceId], references: [id])
+  items           QuotationItem[]
+
+  @@unique([workspaceId, quotationNumber])
+}
+
+model QuotationItem {
+  id          String    @id @default(uuid())
+  quotationId String
+  productId   String
+  quantity    Int
+  unitPrice   Decimal   @db.Decimal(10, 2)
+  product     Product   @relation(fields: [productId], references: [id])
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  workspaceId     String
+  invoiceId       String
+  amount          Decimal       @db.Decimal(10, 2)
+  paymentMethod   PaymentMethod
+  referenceNumber String?
+  paymentDate     DateTime
+  createdAt       DateTime      @default(now())
+  invoice         Invoice       @relation(fields: [invoiceId], references: [id])
+}
+
+model Expense {
+  id          String    @id @default(uuid())
+  workspaceId String
+  amount      Decimal   @db.Decimal(10, 2)
+  category    String
+  receiptUrl  String?
+  expenseDate DateTime
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model TaxRate {
+  id          String    @id @default(uuid())
+  workspaceId String
+  name        String
+  percentage  Decimal   @db.Decimal(5, 2)
+  createdAt   DateTime  @default(now())
+  products    Product[]
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  workspaceId String
+  userId      String?
+  action      String
+  description String
+  createdAt   DateTime  @default(now())
+  user        User?     @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model WorkspaceInvitation {
+  id          String    @id @default(uuid())
+  workspaceId String
+  email       String
+  role        Role
+  token       String    @unique
+  invitedById String
+  status      String    @default("PENDING")
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  invitedBy   User      @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, email])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  ACCOUNTANT
+  MANAGER
+  VIEWER
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
 }
 
 enum InvoiceStatus {
@@ -139,39 +262,21 @@ enum InvoiceStatus {
   CANCELLED
 }
 
-model Invoice {
-  id            String        @id @default(uuid())
-  workspaceId   String
-  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
-  clientId      String
-  client        Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  invoiceNumber String
-  status        InvoiceStatus @default(DRAFT)
-  issueDate     DateTime
-  dueDate       DateTime
-  subTotal      Decimal       @db.Decimal(10, 2)
-  taxTotal      Decimal       @db.Decimal(10, 2)
-  discountTotal Decimal       @db.Decimal(10, 2)
-  grandTotal    Decimal       @db.Decimal(10, 2)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  items         InvoiceItem[]
-  payments      Payment[]
+model Session {
+  id                String   @id @default(uuid())
+  tokenHash         String   @unique
+  userId            String
+  userAgent         String?
+  ipAddress         String?
+  deviceName        String?
+  createdAt         DateTime @default(now())
+  lastUsedAt        DateTime @default(now())
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  revokeReason      String?
+  refreshTokenVersion Int    @default(0)
 
-  @@unique([workspaceId, invoiceNumber])
-}
-
-model InvoiceItem {
-  id             String   @id @default(uuid())
-  invoiceId      String
-  invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  productId      String
-  product        Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
-  quantity       Int
-  unitPrice      Decimal  @db.Decimal(10, 2)
-  taxAmount      Decimal  @db.Decimal(10, 2)
-  discountAmount Decimal  @db.Decimal(10, 2)
-  totalAmount    Decimal  @db.Decimal(10, 2)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum QuotationStatus {
@@ -182,97 +287,9 @@ enum QuotationStatus {
   EXPIRED
 }
 
-model Quotation {
-  id              String          @id @default(uuid())
-  workspaceId     String
-  workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
-  clientId        String
-  client          Client          @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  quotationNumber String
-  status          QuotationStatus @default(DRAFT)
-  validUntil      DateTime
-  grandTotal      Decimal         @db.Decimal(10, 2)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  items           QuotationItem[]
-
-  @@unique([workspaceId, quotationNumber])
-}
-
-model QuotationItem {
-  id          String    @id @default(uuid())
-  quotationId String
-  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
-  productId   String
-  product     Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
-  quantity    Int
-  unitPrice   Decimal   @db.Decimal(10, 2)
-}
-
 enum PaymentMethod {
   CARD
   BANK_TRANSFER
   UPI
   CASH
-}
-
-model Payment {
-  id            String        @id @default(uuid())
-  workspaceId   String
-  invoiceId     String
-  invoice       Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
-  amount        Decimal       @db.Decimal(10, 2)
-  paymentMethod PaymentMethod
-  referenceNumber String?
-  paymentDate   DateTime
-  createdAt     DateTime      @default(now())
-}
-
-model Expense {
-  id          String    @id @default(uuid())
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
-  amount      Decimal   @db.Decimal(10, 2)
-  category    String
-  receiptUrl  String?
-  expenseDate DateTime
-  createdAt   DateTime  @default(now())
-}
-
-model TaxRate {
-  id          String    @id @default(uuid())
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  name        String
-  percentage  Decimal   @db.Decimal(5, 2)
-  createdAt   DateTime  @default(now())
-  products    Product[]
-}
-
-model AuditLog {
-  id          String    @id @default(uuid())
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  userId      String?
-  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action      String
-  description String
-  createdAt   DateTime  @default(now())
-}
-
-model WorkspaceInvitation {
-  id          String    @id @default(uuid())
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  email       String
-  role        Role
-  token       String    @unique
-  invitedById String
-  invitedBy   User      @relation(name: "InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
-  status      String    @default("PENDING") // PENDING, ACCEPTED, REJECTED
-  expiresAt   DateTime
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@unique([workspaceId, email])
 }

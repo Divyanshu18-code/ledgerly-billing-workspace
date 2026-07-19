@@ -1,4 +1,38 @@
-import 'dotenv/config';
+import './loadEnv';
+
+// Enforce strong JWT secrets in production
+if (process.env.NODE_ENV === 'production') {
+  const accessSecret = process.env.JWT_ACCESS_SECRET;
+  const refreshSecret = process.env.JWT_REFRESH_SECRET;
+  
+  if (
+    !accessSecret || 
+    accessSecret.includes('change_me') || 
+    accessSecret === 'access_secret'
+  ) {
+    console.error('[CRITICAL] Insecure or missing JWT_ACCESS_SECRET set in production environment!');
+    process.exit(1);
+  }
+  
+  if (
+    !refreshSecret || 
+    refreshSecret.includes('change_me') || 
+    refreshSecret === 'refresh_secret'
+  ) {
+    console.error('[CRITICAL] Insecure or missing JWT_REFRESH_SECRET set in production environment!');
+    process.exit(1);
+  }
+}
+
+import { v4 as uuidv4 } from 'uuid';
+
+// Request ID middleware – adds a unique ID to each request for structured logging
+export const requestIdMiddleware = (req: any, res: any, next: any) => {
+  const requestId = uuidv4();
+  req.id = requestId;
+  res.setHeader('X-Request-ID', requestId);
+  next();
+};
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './modules/auth/auth.routes';

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/hooks/useAuth';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -23,6 +23,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const verifyPending = searchParams.get('verifyPending') === 'true';
 
   const {
     register,
@@ -94,6 +96,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
         <h2 className="text-3xl font-bold tracking-tight text-white mb-2 font-heading">Welcome Back</h2>
         <p className="text-sm text-gray-400">Log in to manage your billing & invoices</p>
       </div>
+
+      {verifyPending && !errorMsg && (
+        <div className="p-4 mb-6 text-sm text-emerald-400 rounded-lg border border-emerald-500/20 bg-emerald-500/10 leading-relaxed text-center">
+          Registration successful! Please check your email (or <code className="bg-emerald-500/20 px-1 rounded">server/logs/mail.log</code>) to verify your email address.
+        </div>
+      )}
 
       {errorMsg && (
         <div className="p-4 mb-6 text-sm text-red-400 rounded-lg border border-red-500/20 bg-red-500/10">

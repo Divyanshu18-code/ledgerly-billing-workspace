@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authController } from './auth.controller';
 import { validateBody } from '~/middlewares/validation.middleware';
+import { loginLimiter, registerLimiter } from '~/middlewares/rateLimit.middleware';
 import { z } from 'zod';
 
 const router = Router();
@@ -22,16 +23,21 @@ const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
+const resendVerificationSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
 const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Reset token is required'),
   password: z.string().min(6, 'Password must be at least 6 characters long'),
 });
 
-router.post('/register', validateBody(registerSchema), authController.register);
-router.post('/login', validateBody(loginSchema), authController.login);
+router.post('/register', registerLimiter, validateBody(registerSchema), authController.register);
+router.post('/login', loginLimiter, validateBody(loginSchema), authController.login);
 router.post('/refresh', authController.refresh);
 router.post('/logout', authController.logout);
 router.get('/verify-email', authController.verifyEmail);
+router.post('/resend-verification', validateBody(resendVerificationSchema), authController.resendVerification);
 router.post('/forgot-password', validateBody(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', validateBody(resetPasswordSchema), authController.resetPassword);
 router.post('/google-simulated', authController.googleSimulated);
