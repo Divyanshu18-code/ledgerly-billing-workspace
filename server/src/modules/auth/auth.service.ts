@@ -28,21 +28,23 @@ export class AuthService {
     lastName: string;
     workspaceName?: string;
   }) {
-    const existingUser = await authRepository.findByEmail(data.email);
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const existingUser = await authRepository.findByEmail(normalizedEmail);
     if (existingUser) {
-      throw ApiError.badRequest('Email is already registered');
+      throw ApiError.badRequest('Email is already registered. Please sign in instead.');
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
-    const workspaceName = data.workspaceName || `${data.firstName}'s Workspace`;
+    const workspaceName = (data.workspaceName && data.workspaceName.trim()) || `${data.firstName}'s Workspace`;
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
     const { user, workspace } = await authRepository.createUserWithWorkspace(
       {
-        email: data.email,
+        email: normalizedEmail,
         passwordHash,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        isVerified: true, // Auto-verified for seamless development onboarding
         verificationToken,
       },
       workspaceName
@@ -57,7 +59,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         isVerified: user.isVerified,
-        verificationToken: user.verificationToken, // Returned for simulated verification flows in development
+        verificationToken: user.verificationToken,
       },
       workspace: {
         id: workspace.id,
@@ -69,7 +71,8 @@ export class AuthService {
   }
 
   async login(data: { email: string; password: string }) {
-    const user = await authRepository.findByEmail(data.email);
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const user = await authRepository.findByEmail(normalizedEmail);
     if (!user) {
       throw ApiError.unauthorized('Invalid email or password');
     }

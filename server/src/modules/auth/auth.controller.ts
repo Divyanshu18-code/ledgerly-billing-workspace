@@ -18,12 +18,10 @@ const parseCookies = (cookieHeader: string | undefined): Record<string, string> 
 };
 
 const setRefreshTokenCookie = (res: Response, token: string) => {
-  res.cookie(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
+  const isProduction = process.env.NODE_ENV === 'production';
+  const maxAgeSeconds = 7 * 24 * 60 * 60; // 7 days
+  const cookieValue = `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; Max-Age=${maxAgeSeconds}; SameSite=Lax${isProduction ? '; Secure' : ''}`;
+  res.setHeader('Set-Cookie', cookieValue);
 };
 
 export class AuthController {
@@ -131,11 +129,7 @@ export class AuthController {
 
   async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      res.clearCookie(COOKIE_NAME, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-      });
+      res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax`);
 
       res.status(200).json({
         status: 'success',

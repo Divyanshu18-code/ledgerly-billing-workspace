@@ -60,7 +60,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setUser(loggedInUser);
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const fieldError = err.response?.data?.errors?.[0]?.message;
+      const errMsg = fieldError || err.response?.data?.message || 'Login failed. Please check your credentials.';
       setError(errMsg);
       throw new Error(errMsg);
     }
@@ -80,7 +81,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setUser(loggedInUser);
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'Google Sign In failed.';
+      const fieldError = err.response?.data?.errors?.[0]?.message;
+      const errMsg = fieldError || err.response?.data?.message || 'Google Sign In failed.';
       setError(errMsg);
       throw new Error(errMsg);
     }
@@ -90,9 +92,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     try {
       const response = await apiClient.post('/auth/register', data);
+      const { user: registeredUser, workspace, accessToken } = response.data.data;
+
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('user', JSON.stringify(registeredUser));
+        if (workspace) {
+          localStorage.setItem('activeWorkspaceId', workspace.id);
+          localStorage.setItem('activeWorkspaceName', workspace.name);
+        }
+        setUser(registeredUser);
+      }
+
       return response.data.data;
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'Registration failed.';
+      const fieldError = err.response?.data?.errors?.[0]?.message;
+      const errMsg = fieldError || err.response?.data?.message || 'Registration failed. Please try again.';
       setError(errMsg);
       throw new Error(errMsg);
     }

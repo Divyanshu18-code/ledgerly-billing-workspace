@@ -16,6 +16,15 @@ export const errorHandler: ErrorRequestHandler = (
     return;
   }
 
+  // Handle SyntaxError / Body Parser errors
+  if ('type' in err && (err as any).type === 'entity.parse.failed') {
+    res.status(400).json({
+      status: 'error',
+      message: 'Invalid JSON request payload'
+    });
+    return;
+  }
+
   // Fallback for unhandled exceptions
   console.error('[Unhandled Exception]:', err);
   

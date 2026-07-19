@@ -40,7 +40,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onNavigat
       const result = await registerUser(data);
       onSuccess(result);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Registration failed. Please try again.');
+      const apiMessage = err.response?.data?.message || err.response?.data?.errors?.[0]?.message || err.message || 'Registration failed. Please try again.';
+      setErrorMsg(apiMessage);
     } finally {
       setIsSubmitting(false);
     }

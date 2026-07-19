@@ -36,10 +36,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
-      await login(data);
+      await login({
+        email: data.email.trim(),
+        password: data.password.trim(),
+      });
       onSuccess();
     } catch (err: any) {
-      setErrorMsg(err.message || 'Login failed. Please try again.');
+      const apiMessage = err.response?.data?.message || err.response?.data?.errors?.[0]?.message || err.message || 'Login failed. Please try again.';
+      setErrorMsg(apiMessage);
     } finally {
       setIsSubmitting(false);
     }
