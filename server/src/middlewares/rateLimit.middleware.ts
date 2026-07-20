@@ -1,11 +1,13 @@
 import rateLimit from 'express-rate-limit';
 import { ApiError } from '~/utils/errors';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 login requests per windowMs
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  max: isDev ? 1000 : 10, // Relaxed limit in local dev environment
+  standardHeaders: true,
+  legacyHeaders: false,
   handler: (req, res, next) => {
     next(ApiError.tooManyRequests('Too many login attempts from this IP, please try again after 15 minutes.'));
   },
@@ -13,7 +15,7 @@ export const loginLimiter = rateLimit({
 
 export const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // Limit each IP to 5 registration requests per windowMs
+  max: isDev ? 1000 : 5, // Relaxed limit in local dev environment
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next) => {
