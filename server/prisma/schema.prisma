@@ -26,6 +26,7 @@ model User {
   createdWorkspaces    Workspace[]           @relation("WorkspaceCreatedBy")
   sentInvitations      WorkspaceInvitation[] @relation("InvitedBy")
   workspaceMembers     WorkspaceMember[]
+  sessions             Session[]
 }
 
 model Workspace {
