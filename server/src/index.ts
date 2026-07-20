@@ -47,7 +47,7 @@ const PORT = process.env.PORT || 5000;
 // Enable Outgoing Credentials for Secure CORS Session Cookies Handshakes
 app.use(
   cors({
-    origin: ['http://localhost:5173'],
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-workspace-id'],
