@@ -44,6 +44,18 @@ export const DashboardLayout: React.FC = () => {
   const switchWorkspaceMutation = useWorkspaceSwitch();
   const activeWorkspaceName = workspace?.name || localStorage.getItem('activeWorkspaceName') || 'Default Workspace';
 
+  // Auto-sync activeWorkspaceId if stale or missing
+  useEffect(() => {
+    if (workspaces && workspaces.length > 0) {
+      const currentId = localStorage.getItem('activeWorkspaceId');
+      const validWs = workspaces.find((w) => w.id === currentId) || workspaces[0];
+      if (currentId !== validWs.id) {
+        localStorage.setItem('activeWorkspaceId', validWs.id);
+        localStorage.setItem('activeWorkspaceName', validWs.name);
+      }
+    }
+  }, [workspaces]);
+
   // Refs for click-away behavior
   const workspaceRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
@@ -386,7 +398,9 @@ export const DashboardLayout: React.FC = () => {
 
         {/* Content Panel Area */}
         <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+          <div className="max-w-[1240px] px-5 mx-auto w-full">
+            <Outlet />
+          </div>
         </main>
       </div>
 

@@ -301,8 +301,8 @@ export const WorkspacePage: React.FC = () => {
       {activeTab === 'profile' ? (
         <form onSubmit={handleUpdateWorkspace} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 p-6 rounded-xl border border-gray-100 dark:border-white/5 bg-white dark:bg-card space-y-6">
-              <h2 className="text-base font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-white/5 pb-2">
+            <div className="md:col-span-2 p-7 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm transition-all duration-300 hover:shadow-md space-y-6">
+              <h2 className="text-base font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-white/5 pb-2 font-heading">
                 Legal Company Information
               </h2>
 

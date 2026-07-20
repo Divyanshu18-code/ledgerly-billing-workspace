@@ -40,3 +40,5 @@ export const checkRole = (allowedRoles: string[]) => {
     }
   };
 };
+
+export const requireRole = checkRole;

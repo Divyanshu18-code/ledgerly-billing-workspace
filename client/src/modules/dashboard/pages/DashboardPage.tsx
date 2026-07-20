@@ -27,9 +27,8 @@ export const DashboardPage: React.FC = () => {
 
   const currencySymbol = workspace?.currency === 'INR' ? '₹' : '$';
   
-  // Dynamic metrics computed from active workspace
   const totalClientsCount = clients?.pagination?.total ?? (Array.isArray(clients) ? clients.length : 5);
-  const totalProductsCount = products?.length || 12;
+  const totalProductsCount = products?.pagination?.totalItems ?? (Array.isArray(products) ? (products as any[]).length : 12);
 
   const metrics = [
     {
@@ -110,21 +109,21 @@ export const DashboardPage: React.FC = () => {
           return (
             <div
               key={m.title}
-              className="p-5 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-card/60 backdrop-blur-md flex flex-col justify-between hover:border-blue-500/25 dark:hover:border-blue-500/20 transition shadow-sm"
+              className="p-5 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-20px_rgba(0,0,0,0.07)]"
             >
               <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-550 uppercase tracking-widest">
+                <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-400 uppercase tracking-wider">
                   {m.title}
                 </span>
-                <div className={`p-2 rounded-lg border ${m.color}`}>
+                <div className={`p-2 rounded-xl border ${m.color}`}>
                   <Icon className="h-4 w-4" />
                 </div>
               </div>
               <div className="space-y-0.5">
-                <h3 className="text-2xl font-black text-gray-900 dark:text-white font-heading tracking-tight">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono tracking-tight">
                   {m.value}
                 </h3>
-                <p className="text-[10px] text-gray-450 dark:text-gray-500 font-medium">
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
                   {m.description}
                 </p>
               </div>
@@ -134,10 +133,10 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Revenue SVG Line Chart */}
-      <div className="p-6 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-card/60 backdrop-blur-md">
+      <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm transition-all duration-300 hover:shadow-md">
         <div className="space-y-1 mb-6">
           <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoiced Revenue</h2>
-          <p className="text-xs text-gray-400 dark:text-gray-550">Monthly gross billing volumes across all active clients</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Monthly gross billing volumes across all active clients</p>
         </div>
 
         {/* Responsive Line Chart SVG representation */}
@@ -236,10 +235,10 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Cashflow Comparison Card */}
-        <div className="p-6 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-card/60 backdrop-blur-md flex flex-col justify-between">
+        <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm transition-all duration-300 hover:shadow-md flex flex-col justify-between">
           <div className="space-y-1 mb-6">
             <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Cashflow Comparison</h2>
-            <p className="text-xs text-gray-400 dark:text-gray-550">Cash Inflows (Paid Invoices) vs. Operating Costs (Logged Expenses) month-over-month</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Cash Inflows (Paid Invoices) vs. Operating Costs (Logged Expenses) month-over-month</p>
           </div>
 
           <div className="flex flex-col items-center justify-center gap-6 py-4">

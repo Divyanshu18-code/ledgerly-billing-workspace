@@ -39,6 +39,7 @@ import authRoutes from './modules/auth/auth.routes';
 import clientsRoutes from './modules/clients/clients.routes';
 import productsRoutes from './modules/products/products.routes';
 import workspaceRoutes from './modules/workspace/workspace.routes';
+import quotationRoutes from './modules/quotations/quotations.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 const app = express();
@@ -61,6 +62,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/clients', clientsRoutes);
 app.use('/api/v1/products', productsRoutes);
 app.use('/api/v1/workspaces', workspaceRoutes);
+app.use('/api/v1/quotations', quotationRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({

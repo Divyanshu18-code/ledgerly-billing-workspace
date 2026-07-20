@@ -42,11 +42,19 @@ export const requireAuth = async (
         },
       });
 
-      if (!membership) {
-        throw ApiError.forbidden('You do not have access to this workspace');
+      if (membership) {
+        req.workspaceId = workspaceId;
       }
+    }
 
-      req.workspaceId = workspaceId;
+    if (!req.workspaceId) {
+      const defaultMembership = await prisma.workspaceMember.findFirst({
+        where: { userId: decoded.id },
+        orderBy: { createdAt: 'asc' },
+      });
+      if (defaultMembership) {
+        req.workspaceId = defaultMembership.workspaceId;
+      }
     }
 
     next();

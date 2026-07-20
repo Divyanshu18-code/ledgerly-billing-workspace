@@ -253,7 +253,7 @@ export const ClientsPage: React.FC = () => {
             {clients.map((client) => (
               <div
                 key={client.id}
-                className="p-5 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-card hover:border-blue-500/40 dark:hover:border-blue-500/50 hover:shadow-lg transition flex flex-col justify-between"
+                className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-20px_rgba(0,0,0,0.07)] flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div className="flex justify-between items-start">
@@ -261,10 +261,10 @@ export const ClientsPage: React.FC = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-base font-bold text-gray-900 dark:text-white font-heading">{client.name}</h3>
                         <span
-                          className={`inline-flex items-center px-2 py-0.5 text-xxs font-extrabold rounded-full border uppercase tracking-wider ${
+                          className={`inline-flex items-center px-2.5 py-0.5 text-xxs font-extrabold rounded-full border uppercase tracking-wider ${
                             client.status === 'ACTIVE'
-                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-gray-500/10 border-gray-500/20 text-gray-500 dark:text-gray-400'
+                              ? 'badge-success-soft'
+                              : 'bg-rose-500/10 border-rose-500/20 text-rose-500 dark:text-rose-400'
                           }`}
                         >
                           {client.status}

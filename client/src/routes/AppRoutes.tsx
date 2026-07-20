@@ -12,11 +12,14 @@ import ProductsPage from '@/modules/products/pages/ProductsPage';
 import DashboardPage from '@/modules/dashboard/pages/DashboardPage';
 import WorkspacePage from '@/modules/workspace/pages/WorkspacePage';
 import AcceptInvitationPage from '@/modules/workspace/pages/AcceptInvitationPage';
+import { QuotationsPage } from '@/modules/quotations/pages/QuotationsPage';
+import { CreateQuotationPage } from '@/modules/quotations/pages/CreateQuotationPage';
+import { EditQuotationPage } from '@/modules/quotations/pages/EditQuotationPage';
+import { QuotationDetailsPage } from '@/modules/quotations/pages/QuotationDetailsPage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ComingSoon } from '@/components/ComingSoon';
 import {
   FileText,
-  Briefcase,
   CreditCard,
   TrendingDown,
   BarChart3,
@@ -73,17 +76,10 @@ export const AppRoutes: React.FC = () => {
             
             {/* Simulated Modules utilizing ComingSoon wrapper */}
             <Route path="/workspace" element={<WorkspacePage />} />
-            <Route
-              path="/quotations"
-              element={
-                <ComingSoon
-                  icon={Briefcase}
-                  title="Quotations Builder"
-                  description="Draft estimation sheets, send rate proposals to prospects, and automatically convert approved estimations into invoices."
-                  breadcrumbs={['Main', 'Quotations']}
-                />
-              }
-            />
+            <Route path="/quotations" element={<QuotationsPage />} />
+            <Route path="/quotations/new" element={<CreateQuotationPage />} />
+            <Route path="/quotations/:id" element={<QuotationDetailsPage />} />
+            <Route path="/quotations/:id/edit" element={<EditQuotationPage />} />
             <Route
               path="/invoices"
               element={

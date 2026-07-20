@@ -1,23 +1,91 @@
 import { prisma } from '~/config/db';
-import { Product, Prisma } from '@prisma/client';
+import { Product, ProductType, ProductStatus, Prisma } from '@prisma/client';
+
+export interface FindProductsOptions {
+  search?: string;
+  type?: ProductType;
+  status?: ProductStatus;
+  page?: number;
+  limit?: number;
+}
 
 export class ProductsRepository {
-  async findMany(workspaceId: string): Promise<Product[]> {
+  async findMany(workspaceId: string, options: FindProductsOptions = {}): Promise<Product[]> {
+    const { search, type, status, page = 1, limit = 10 } = options;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = {
+      workspaceId,
+      isArchived: false,
+      ...(type ? { type } : {}),
+      ...(status ? { status } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { sku: { contains: search, mode: 'insensitive' } },
+              { category: { contains: search, mode: 'insensitive' } },
+              { description: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+
     return prisma.product.findMany({
-      where: { workspaceId },
+      where,
+      skip,
+      take: limit,
       orderBy: { createdAt: 'desc' },
+      include: {
+        taxRate: true,
+      },
     });
+  }
+
+  async count(workspaceId: string, options: FindProductsOptions = {}): Promise<number> {
+    const { search, type, status } = options;
+
+    const where: Prisma.ProductWhereInput = {
+      workspaceId,
+      isArchived: false,
+      ...(type ? { type } : {}),
+      ...(status ? { status } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { sku: { contains: search, mode: 'insensitive' } },
+              { category: { contains: search, mode: 'insensitive' } },
+              { description: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+
+    return prisma.product.count({ where });
   }
 
   async findById(id: string, workspaceId: string): Promise<Product | null> {
     return prisma.product.findFirst({
-      where: { id, workspaceId },
+      where: {
+        id,
+        workspaceId,
+        isArchived: false,
+      },
+      include: {
+        taxRate: true,
+      },
     });
   }
 
-  async findBySku(sku: string, workspaceId: string): Promise<Product | null> {
+  async findBySku(workspaceId: string, sku: string, excludeId?: string): Promise<Product | null> {
     return prisma.product.findFirst({
-      where: { sku, workspaceId },
+      where: {
+        workspaceId,
+        sku: { equals: sku, mode: 'insensitive' },
+        isArchived: false,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
     });
   }
 
@@ -27,24 +95,34 @@ export class ProductsRepository {
         ...data,
         workspaceId,
       },
+      include: {
+        taxRate: true,
+      },
     });
   }
 
-  async update(id: string, workspaceId: string, data: Prisma.ProductUpdateInput): Promise<Product> {
+  async update(id: string, workspaceId: string, data: Prisma.ProductUncheckedUpdateInput): Promise<Product> {
     return prisma.product.update({
       where: {
         id,
         workspaceId,
       },
       data,
+      include: {
+        taxRate: true,
+      },
     });
   }
 
-  async delete(id: string, workspaceId: string): Promise<Product> {
-    return prisma.product.delete({
+  async softDelete(id: string, workspaceId: string): Promise<Product> {
+    return prisma.product.update({
       where: {
         id,
         workspaceId,
+      },
+      data: {
+        isArchived: true,
+        deletedAt: new Date(),
       },
     });
   }

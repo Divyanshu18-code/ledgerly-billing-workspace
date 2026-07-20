@@ -50,30 +50,32 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
       </div>
 
       {/* Main Illustration & Card Content */}
-      <div className="flex-1 flex flex-col items-center justify-center py-16 relative z-10 max-w-md mx-auto text-center">
-        <div className="h-20 w-20 rounded-2xl bg-gradient-to-tr from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 border border-blue-100 dark:border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-xl shadow-blue-500/5 mb-6 animate-pulse">
-          <Icon className="h-10 w-10" />
+      <div className="flex-1 flex flex-col items-center justify-center py-12 relative z-10 max-w-lg mx-auto text-center">
+        <div className="p-8 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-lg transition-all duration-300 hover:shadow-xl flex flex-col items-center">
+          <div className="h-20 w-20 rounded-2xl bg-gradient-to-tr from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 border border-blue-100 dark:border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-xl shadow-blue-500/5 mb-6 animate-pulse">
+            <Icon className="h-10 w-10" />
+          </div>
+
+          <span className="inline-block px-3 py-1 text-[11px] font-bold uppercase tracking-widest rounded-full badge-success-soft mb-3">
+            Under Active Development
+          </span>
+          
+          <h2 className="text-2xl font-bold font-heading text-gray-900 dark:text-white mb-2">Module Under Construction</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">
+            {description}
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-600 mb-8 max-w-xs">
+            This feature module is currently undergoing architecture reviews and database setup. It will be fully functional soon.
+          </p>
+
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold transition shadow-lg shadow-blue-500/15 cursor-pointer text-sm"
+          >
+            <LayoutDashboard className="h-4.5 w-4.5" />
+            Back to Dashboard
+          </button>
         </div>
-
-        <span className="inline-block px-3 py-1 text-[11px] font-bold uppercase tracking-widest rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/10 mb-3">
-          Coming Soon
-        </span>
-        
-        <h2 className="text-2xl font-bold font-heading text-gray-900 dark:text-white mb-2">Module Under Construction</h2>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">
-          {description}
-        </p>
-        <p className="text-xs text-gray-400 dark:text-gray-600 mb-8 max-w-xs">
-          This feature module is currently undergoing architecture reviews and database setup. It will be fully functional soon.
-        </p>
-
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 px-5 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold transition shadow-lg shadow-blue-500/15 cursor-pointer text-sm"
-        >
-          <LayoutDashboard className="h-4.5 w-4.5" />
-          Back to Dashboard
-        </button>
       </div>
     </div>
   );
