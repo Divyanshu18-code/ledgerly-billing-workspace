@@ -432,43 +432,43 @@ export const QuotationsPage: React.FC = () => {
                       {Number(q.grandTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => navigate(`/quotations/${q.id}`)}
-                          className="p-1.5 rounded-lg border border-gray-200/60 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer"
+                          className="h-9 w-9 rounded-2xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
                           title="View Proposal Details"
                         >
-                          <Eye className="h-3.5 w-3.5" />
+                          <Eye className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => navigate(`/quotations/${q.id}/edit`)}
-                          className="p-1.5 rounded-lg border border-gray-200/60 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer"
+                          className="h-9 w-9 rounded-2xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
                           title="Edit Proposal"
                         >
-                          <Edit3 className="h-3.5 w-3.5" />
+                          <Edit3 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDuplicate(q.id, q.quotationNumber)}
-                          className="p-1.5 rounded-lg border border-gray-200/60 dark:border-white/10 hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 transition cursor-pointer"
+                          className="h-9 w-9 rounded-2xl border border-blue-500/20 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
                           title="Duplicate Proposal"
                         >
-                          <Copy className="h-3.5 w-3.5" />
+                          <Copy className="h-4 w-4" />
                         </button>
                         {q.status !== 'CONVERTED' && (
                           <button
                             onClick={() => handleConvert(q.id, q.quotationNumber)}
-                            className="p-1.5 rounded-lg border border-purple-500/20 bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 transition cursor-pointer"
+                            className="h-9 w-9 rounded-2xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 dark:text-purple-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
                             title="Convert to Invoice"
                           >
-                            <FileCheck2 className="h-3.5 w-3.5" />
+                            <FileCheck2 className="h-4 w-4" />
                           </button>
                         )}
                         <button
                           onClick={() => setDeletingQuotation(q)}
-                          className="p-1.5 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"
+                          className="h-9 w-9 rounded-2xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
                           title="Delete Quotation"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>

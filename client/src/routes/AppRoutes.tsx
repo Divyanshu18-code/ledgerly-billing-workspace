@@ -16,10 +16,13 @@ import { QuotationsPage } from '@/modules/quotations/pages/QuotationsPage';
 import { CreateQuotationPage } from '@/modules/quotations/pages/CreateQuotationPage';
 import { EditQuotationPage } from '@/modules/quotations/pages/EditQuotationPage';
 import { QuotationDetailsPage } from '@/modules/quotations/pages/QuotationDetailsPage';
+import { InvoicesPage } from '@/modules/invoices/pages/InvoicesPage';
+import { CreateInvoicePage } from '@/modules/invoices/pages/CreateInvoicePage';
+import { EditInvoicePage } from '@/modules/invoices/pages/EditInvoicePage';
+import { InvoiceDetailsPage } from '@/modules/invoices/pages/InvoiceDetailsPage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ComingSoon } from '@/components/ComingSoon';
 import {
-  FileText,
   CreditCard,
   TrendingDown,
   BarChart3,
@@ -80,17 +83,10 @@ export const AppRoutes: React.FC = () => {
             <Route path="/quotations/new" element={<CreateQuotationPage />} />
             <Route path="/quotations/:id" element={<QuotationDetailsPage />} />
             <Route path="/quotations/:id/edit" element={<EditQuotationPage />} />
-            <Route
-              path="/invoices"
-              element={
-                <ComingSoon
-                  icon={FileText}
-                  title="Invoices Builder"
-                  description="Generate premium invoice sheets, set payment due dates, setup recurring schedules, and export documents as PDFs."
-                  breadcrumbs={['Main', 'Invoices']}
-                />
-              }
-            />
+            <Route path="/invoices" element={<InvoicesPage />} />
+            <Route path="/invoices/new" element={<CreateInvoicePage />} />
+            <Route path="/invoices/:id" element={<InvoiceDetailsPage />} />
+            <Route path="/invoices/:id/edit" element={<EditInvoicePage />} />
             <Route
               path="/payments"
               element={

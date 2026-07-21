@@ -1,70 +1,166 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaceData } from '@/modules/workspace/hooks/useWorkspace';
 import { useClientsQuery } from '@/modules/clients/hooks/useClients';
 import { useProductsQuery } from '@/modules/products/hooks/useProducts';
+import { useInvoicesQuery } from '@/modules/invoices/hooks/useInvoices';
+import { useQuotationsQuery } from '@/modules/quotations/hooks/useQuotations';
 import {
   Users,
   RefreshCw,
   Plus,
   DollarSign,
   FileSpreadsheet,
-  TrendingDown,
   Clock,
+  FileText,
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: workspace } = useWorkspaceData();
-  const { data: clients } = useClientsQuery();
-  const { data: products } = useProductsQuery();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { data: clientsData, refetch: refetchClients } = useClientsQuery({ limit: 100 });
+  const { data: productsData, refetch: refetchProducts } = useProductsQuery({ limit: 100 });
+  const { data: invoicesData, refetch: refetchInvoices } = useInvoicesQuery({ limit: 100 });
+  const { data: quotationsData, refetch: refetchQuotations } = useQuotationsQuery({ limit: 100 });
 
-  const handleRefresh = () => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
+
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 800);
+    await Promise.all([
+      refetchClients(),
+      refetchProducts(),
+      refetchInvoices(),
+      refetchQuotations(),
+    ]);
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
-  const currencySymbol = workspace?.currency === 'INR' ? '₹' : '$';
-  
-  const totalClientsCount = clients?.pagination?.total ?? (Array.isArray(clients) ? clients.length : 5);
-  const totalProductsCount = products?.pagination?.totalItems ?? (Array.isArray(products) ? (products as any[]).length : 12);
+  const currencySymbol = workspace?.currency === 'USD' ? '$' : '₹';
+
+  const clients = (clientsData?.clients || (clientsData as any)?.data || []) as any[];
+  const products = (productsData?.items || (productsData as any)?.data || []) as any[];
+  const invoices = (invoicesData?.data || (invoicesData as any)?.invoices || []) as any[];
+  const quotations = (quotationsData?.data || (quotationsData as any)?.quotations || []) as any[];
+
+  const totalClientsCount = clientsData?.pagination?.total ?? clients.length;
+  const totalProductsCount = productsData?.pagination?.totalItems ?? products.length;
+  const totalInvoicesCount = (invoicesData as any)?.pagination?.total ?? invoicesData?.pagination?.totalItems ?? invoices.length;
+  const totalQuotationsCount = quotationsData?.pagination?.totalItems ?? (quotationsData as any)?.pagination?.total ?? quotations.length;
+
+  const paidInvoices = invoices.filter((i) => i.status === 'PAID');
+  const unpaidInvoices = invoices.filter((i) => i.status !== 'PAID' && i.status !== 'CANCELLED');
+  const overdueInvoices = invoices.filter((i) => i.status === 'OVERDUE');
+  const pendingInvoices = invoices.filter((i) => i.status === 'SENT' || i.status === 'DRAFT' || i.status === 'PARTIALLY_PAID');
+
+  const totalRevenueCollected = paidInvoices.reduce((sum, i) => sum + Number(i.grandTotal || 0), 0);
+  const totalOutstandingDues = unpaidInvoices.reduce((sum, i) => sum + Number(i.balanceDue || i.grandTotal || 0), 0);
+
+  const paidCount = paidInvoices.length;
+  const pendingCount = pendingInvoices.length;
+  const overdueCount = overdueInvoices.length;
+
+  const paidPct = totalInvoicesCount > 0 ? Math.round((paidCount / totalInvoicesCount) * 100) : 0;
+  const pendingPct = totalInvoicesCount > 0 ? Math.round((pendingCount / totalInvoicesCount) * 100) : 0;
+  const overduePct = totalInvoicesCount > 0 ? Math.max(0, 100 - paidPct - pendingPct) : 0;
+
+  // Calculate Monthly Invoiced Revenue for full 12 months (Jan - Dec of current year)
+  const getMonthlyRevenueData = () => {
+    const currentYear = new Date().getFullYear();
+    const monthsList: { label: string; year: number; month: number; total: number }[] = [];
+
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(currentYear, i, 1);
+      monthsList.push({
+        label: d.toLocaleString('en-US', { month: 'short' }),
+        year: currentYear,
+        month: i,
+        total: 0,
+      });
+    }
+
+    invoices.forEach((inv) => {
+      if (!inv.issueDate) return;
+      const invDate = new Date(inv.issueDate);
+      if (invDate.getFullYear() === currentYear) {
+        const match = monthsList.find((m) => m.month === invDate.getMonth());
+        if (match) {
+          match.total += Number(inv.grandTotal || 0);
+        }
+      }
+    });
+
+    const maxTotal = Math.max(...monthsList.map((m) => m.total), 1);
+    return { monthsList, maxTotal };
+  };
+
+  const { monthsList, maxTotal } = getMonthlyRevenueData();
+
+  // Dynamic SVG Curve Points
+  const points = monthsList.map((m, idx) => {
+    const x = (idx / (monthsList.length - 1)) * 900 + 50;
+    const y = 160 - (m.total / maxTotal) * 120;
+    return { x, y, label: m.label, total: m.total };
+  });
+
+  const generateSmoothPath = (pts: { x: number; y: number }[]) => {
+    if (pts.length === 0) return '';
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const curr = pts[i];
+      const next = pts[i + 1];
+      const cp1x = curr.x + (next.x - curr.x) / 2;
+      const cp1y = curr.y;
+      const cp2x = curr.x + (next.x - curr.x) / 2;
+      const cp2y = next.y;
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} ${next.y}`;
+    }
+    return d;
+  };
+
+  const linePath = generateSmoothPath(points);
+  const areaPath = points.length > 0
+    ? `${linePath} L ${points[points.length - 1].x} 190 L ${points[0].x} 190 Z`
+    : '';
 
   const metrics = [
     {
       title: 'Total Revenue',
-      value: `${currencySymbol}${workspace?.currency === 'INR' ? '1,24,500' : '12,450'}.00`,
+      value: `${currencySymbol}${totalRevenueCollected.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
       description: 'Paid invoice collections',
       icon: DollarSign,
-      color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+      color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
     },
     {
       title: 'Outstanding Dues',
-      value: `${currencySymbol}${workspace?.currency === 'INR' ? '38,900' : '3,890'}.00`,
+      value: `${currencySymbol}${totalOutstandingDues.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
       description: 'Unpaid pending invoices',
       icon: Clock,
-      color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+      color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
     },
     {
       title: 'Active Invoices',
-      value: '18 Invoiced',
-      description: 'Billed this month',
+      value: `${totalInvoicesCount} Invoiced`,
+      description: `${paidCount} Paid • ${unpaidInvoices.length} Pending`,
       icon: FileSpreadsheet,
-      color: 'text-blue-600 bg-blue-500/10 border-blue-500/20',
+      color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
     },
     {
-      title: 'Monthly Expenses',
-      value: `${currencySymbol}${workspace?.currency === 'INR' ? '21,400' : '2,140'}.00`,
-      description: 'Logged company costs',
-      icon: TrendingDown,
-      color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+      title: 'Quotations',
+      value: `${totalQuotationsCount} Proposals`,
+      description: 'Logged estimate proposals',
+      icon: FileText,
+      color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
     },
     {
       title: 'Active Directory',
       value: `${totalClientsCount} Clients`,
       description: `and ${totalProductsCount} items registered`,
       icon: Users,
-      color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+      color: 'text-sky-500 bg-sky-500/10 border-sky-500/20',
     },
   ];
 
@@ -93,7 +189,7 @@ export const DashboardPage: React.FC = () => {
             <span>Refresh</span>
           </button>
           <button
-            onClick={() => alert('Fast invoice builder is ready.')}
+            onClick={() => navigate('/invoices/new')}
             className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs shadow-sm transition cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -132,57 +228,116 @@ export const DashboardPage: React.FC = () => {
         })}
       </div>
 
-      {/* Revenue SVG Line Chart */}
-      <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm transition-all duration-300 hover:shadow-md">
-        <div className="space-y-1 mb-6">
-          <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoiced Revenue</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Monthly gross billing volumes across all active clients</p>
+      {/* Live Invoiced Revenue Chart matching screenshot 1:1 */}
+      <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm transition-all duration-300">
+        <div className="flex justify-between items-center mb-6">
+          <div className="space-y-1">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoiced Revenue</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Monthly billing trends and revenue performance</p>
+          </div>
         </div>
 
-        {/* Responsive Line Chart SVG representation */}
-        <div className="h-64 w-full flex items-end justify-between relative mt-6 pb-6">
-          {/* Horizontal Grid lines */}
-          <div className="absolute inset-x-0 top-0 border-t border-dashed border-gray-100 dark:border-white/5" />
-          <div className="absolute inset-x-0 top-1/4 border-t border-dashed border-gray-100 dark:border-white/5" />
-          <div className="absolute inset-x-0 top-2/4 border-t border-dashed border-gray-100 dark:border-white/5" />
-          <div className="absolute inset-x-0 top-3/4 border-t border-dashed border-gray-100 dark:border-white/5" />
+        <div className="relative h-64 w-full flex">
+          {/* Left Y-Axis Scale Values matching screenshot */}
+          <div className="w-12 h-48 flex flex-col justify-between text-[11px] font-mono text-gray-400 dark:text-gray-500 pr-2 pt-0.5 pb-0.5 text-right select-none shrink-0">
+            <span>{Math.round(maxTotal)}</span>
+            <span>{Math.round(maxTotal * 0.75)}</span>
+            <span>{Math.round(maxTotal * 0.5)}</span>
+            <span>{Math.round(maxTotal * 0.25)}</span>
+            <span>0</span>
+          </div>
 
-          {/* SVG graphic */}
-          <svg className="absolute inset-x-0 top-0 h-48 w-full pointer-events-none" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="revenueGlow" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(37, 99, 235, 0.12)" />
-                <stop offset="100%" stopColor="rgba(37, 99, 235, 0.0)" />
-              </linearGradient>
-            </defs>
-            {/* Chart Area glow */}
-            <path
-              d="M 0 192 L 0 170 C 150 170, 200 120, 350 120 C 500 120, 550 50, 700 50 L 900 50 L 900 192 Z"
-              fill="url(#revenueGlow)"
-              className="w-full"
-            />
-            {/* Chart Line stroke */}
-            <path
-              d="M 0 170 C 150 170, 200 120, 350 120 C 500 120, 550 50, 700 50 L 900 50"
-              fill="none"
-              stroke="#2563eb"
-              strokeWidth="3"
-              strokeLinecap="round"
-              className="w-full"
-            />
-            {/* Glowing dots */}
-            <circle cx="350" cy="120" r="5" fill="#2563eb" className="animate-pulse" />
-            <circle cx="700" cy="50" r="5" fill="#38bdf8" className="animate-pulse" />
-          </svg>
+          {/* SVG & Chart Content Area */}
+          <div className="relative flex-1 h-64">
+            {/* Horizontal Dashed Grid Lines */}
+            <div className="absolute inset-x-0 top-1 border-t border-dashed border-gray-200/40 dark:border-white/5" />
+            <div className="absolute inset-x-0 top-1/4 border-t border-dashed border-gray-200/40 dark:border-white/5" />
+            <div className="absolute inset-x-0 top-2/4 border-t border-dashed border-gray-200/40 dark:border-white/5" />
+            <div className="absolute inset-x-0 top-3/4 border-t border-dashed border-gray-200/40 dark:border-white/5" />
+            <div className="absolute inset-x-0 bottom-8 border-t border-solid border-gray-300/60 dark:border-white/10" />
 
-          {/* Bottom labels */}
-          <div className="absolute bottom-0 inset-x-0 flex justify-between text-[10px] text-gray-455 dark:text-gray-500 font-bold uppercase tracking-wider">
-            <span>Feb</span>
-            <span>Mar</span>
-            <span>Apr</span>
-            <span>May</span>
-            <span>Jun</span>
-            <span>Jul</span>
+            {/* Dynamic SVG graphic */}
+            <svg className="absolute inset-x-0 top-1 h-48 w-full overflow-visible" viewBox="0 0 1000 200" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="orangeGlow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="rgba(249, 115, 22, 0.35)" />
+                  <stop offset="100%" stopColor="rgba(249, 115, 22, 0.0)" />
+                </linearGradient>
+              </defs>
+
+              {/* Dynamic Glowing Orange Area fill */}
+              {areaPath && (
+                <path
+                  d={areaPath}
+                  fill="url(#orangeGlow)"
+                  className="w-full transition-all duration-700"
+                />
+              )}
+
+              {/* Dynamic Smooth Orange Line stroke */}
+              {linePath && (
+                <path
+                  d={linePath}
+                  fill="none"
+                  stroke="#f97316"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  className="w-full transition-all duration-700"
+                />
+              )}
+
+              {/* Dynamic Data Points & Vertical Guide Lines */}
+              {points.map((pt, idx) => (
+                <g key={idx} className="group/pt cursor-pointer">
+                  {/* Vertical Guide Line on Hover */}
+                  <line
+                    x1={pt.x}
+                    y1={pt.y}
+                    x2={pt.x}
+                    y2={190}
+                    stroke="#f97316"
+                    strokeWidth="1.5"
+                    strokeDasharray="3 3"
+                    className="opacity-0 group-hover/pt:opacity-100 transition-opacity"
+                  />
+                  {/* Glowing Dot */}
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r={hoveredPoint === idx ? 6 : 4}
+                    fill="#ffffff"
+                    stroke="#f97316"
+                    strokeWidth="3"
+                    onMouseEnter={() => setHoveredPoint(idx)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                    className="transition-all duration-200"
+                  />
+                </g>
+              ))}
+            </svg>
+
+            {/* Floating Hover Card matching screenshot 1:1 */}
+            {hoveredPoint !== null && points[hoveredPoint] && (
+              <div
+                style={{
+                  left: `${(hoveredPoint / (points.length - 1)) * 88 + 5}%`,
+                  top: `${Math.max(10, (points[hoveredPoint].y / 200) * 100 - 30)}%`,
+                }}
+                className="absolute z-30 p-2.5 rounded-xl border border-gray-700/80 dark:border-white/15 bg-[#161424] text-white shadow-2xl space-y-0.5 pointer-events-none transform -translate-x-1/2 -translate-y-full backdrop-blur-xl font-sans"
+              >
+                <div className="text-xs font-bold text-gray-300">{points[hoveredPoint].label}</div>
+                <div className="text-xs font-mono font-semibold text-orange-400">
+                  value : {points[hoveredPoint].total.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Month Labels matching screenshot */}
+            <div className="absolute bottom-0 inset-x-0 flex justify-between px-2 text-[11px] text-gray-400 dark:text-gray-400 font-medium">
+              {monthsList.map((m) => (
+                <span key={`${m.year}-${m.month}`}>{m.label}</span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -201,34 +356,61 @@ export const DashboardPage: React.FC = () => {
             <div className="relative h-40 w-40 flex items-center justify-center">
               <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
                 {/* Background Ring */}
-                <circle cx="18" cy="18" r="15.91" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="3" />
-                {/* Circle Segment 1: Paid (Blue) - 65% */}
-                <circle cx="18" cy="18" r="15.91" fill="none" stroke="#2563eb" strokeWidth="3.2" strokeDasharray="65 100" strokeDashoffset="0" />
-                {/* Circle Segment 2: Pending (Sky) - 25% */}
-                <circle cx="18" cy="18" r="15.91" fill="none" stroke="#38bdf8" strokeWidth="3.2" strokeDasharray="25 100" strokeDashoffset="-65" />
-                {/* Circle Segment 3: Overdue (Indigo) - 10% */}
-                <circle cx="18" cy="18" r="15.91" fill="none" stroke="#6366f1" strokeWidth="3.2" strokeDasharray="10 100" strokeDashoffset="-90" />
+                <circle cx="18" cy="18" r="15.91" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
+                {/* Circle Segment 1: Paid (Emerald) */}
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.91"
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="3.2"
+                  strokeDasharray={`${paidPct} 100`}
+                  strokeDashoffset="0"
+                />
+                {/* Circle Segment 2: Pending (Amber) */}
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.91"
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth="3.2"
+                  strokeDasharray={`${pendingPct} 100`}
+                  strokeDashoffset={`-${paidPct}`}
+                />
+                {/* Circle Segment 3: Overdue (Rose) */}
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.91"
+                  fill="none"
+                  stroke="#f43f5e"
+                  strokeWidth="3.2"
+                  strokeDasharray={`${overduePct} 100`}
+                  strokeDashoffset={`-${paidPct + pendingPct}`}
+                />
               </svg>
               {/* Inner content */}
               <div className="text-center space-y-0.5">
-                <span className="text-2xl font-black text-gray-900 dark:text-white font-heading">18</span>
-                <p className="text-[9px] font-bold text-gray-400 dark:text-gray-550 uppercase tracking-widest">Invoices</p>
+                <span className="text-2xl font-black text-gray-900 dark:text-white font-heading">{totalInvoicesCount}</span>
+                <p className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Invoices</p>
               </div>
             </div>
 
             {/* Donut Legend */}
             <div className="space-y-3.5 text-xs">
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-                <span className="font-semibold text-gray-700 dark:text-gray-300">Paid Invoices (65%)</span>
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Paid Invoices ({paidPct}%)</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-                <span className="font-semibold text-gray-700 dark:text-gray-300">Pending Dues (25%)</span>
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Pending Dues ({pendingPct}%)</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-indigo-500" />
-                <span className="font-semibold text-gray-700 dark:text-gray-300">Overdue (10%)</span>
+                <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Overdue ({overdueCount} Invoices, {overduePct}%)</span>
               </div>
             </div>
           </div>
