@@ -23,7 +23,7 @@ const createQuotationSchema = z.object({
   issueDate: z.string().optional(),
   validUntil: z.string().min(1, 'Validity date is required'),
   status: z.enum(['DRAFT', 'SENT', 'APPROVED', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'CONVERTED']).optional().default('DRAFT'),
-  currency: z.string().optional().default('USD'),
+  currency: z.string().optional().default('INR'),
   notes: z.string().optional().nullable(),
   terms: z.string().optional().nullable(),
   items: z.array(createQuotationItemSchema).min(1, 'Quotation must contain at least 1 item line'),
@@ -36,11 +36,15 @@ const updateStatusSchema = z.object({
 });
 
 const queryQuotationSchema = z.object({
-  search: z.string().optional(),
-  status: z.enum(['DRAFT', 'SENT', 'APPROVED', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'CONVERTED']).optional(),
-  clientId: z.string().uuid().optional(),
-  page: z.string().optional(),
-  limit: z.string().optional(),
+  search: z.string().optional().nullable().or(z.literal('')),
+  status: z.union([
+    z.enum(['DRAFT', 'SENT', 'APPROVED', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'CONVERTED']),
+    z.literal(''),
+    z.null(),
+  ]).optional(),
+  clientId: z.string().optional().nullable().or(z.literal('')),
+  page: z.union([z.string(), z.number()]).optional(),
+  limit: z.union([z.string(), z.number()]).optional(),
 });
 
 // Middleware stack for all quotation endpoints
@@ -50,7 +54,6 @@ router.use(requireAuth);
 router.get(
   '/',
   requireRole(['OWNER', 'ADMIN', 'MANAGER', 'ACCOUNTANT', 'VIEWER']),
-  validateQuery(queryQuotationSchema),
   quotationsController.getQuotations
 );
 

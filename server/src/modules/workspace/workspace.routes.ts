@@ -12,7 +12,7 @@ const createWorkspaceSchema = z.object({
   name: z.string().min(1, 'Workspace name is required'),
   logoUrl: z.string().optional().nullable(),
   gstNumber: z.string().optional().nullable(),
-  currency: z.string().min(1).default('USD'),
+  currency: z.string().min(1).default('INR'),
   timezone: z.string().min(1).default('UTC'),
   invoicePrefix: z.string().min(1).default('INV-'),
   address: z.string().optional().nullable(),

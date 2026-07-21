@@ -89,7 +89,7 @@ export const QuotationsPage: React.FC = () => {
   const duplicateMutation = useDuplicateQuotationMutation();
   const convertMutation = useConvertToInvoiceMutation();
 
-  const currencySymbol = workspace?.currency === 'INR' ? '₹' : '$';
+  const currencySymbol = workspace?.currency === 'USD' ? '$' : '₹';
   const quotations = responseData?.data || [];
   const pagination = responseData?.pagination;
 

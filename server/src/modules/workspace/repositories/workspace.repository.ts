@@ -24,7 +24,7 @@ export class WorkspaceRepository {
       const workspace = await tx.workspace.create({
         data: {
           name,
-          currency: data.currency || 'USD',
+          currency: data.currency || 'INR',
           timezone: data.timezone || 'UTC',
           invoicePrefix: data.invoicePrefix || 'INV-',
           financialYear: data.financialYear || '2026-2027',

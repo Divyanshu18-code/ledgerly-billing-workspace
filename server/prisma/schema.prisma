@@ -36,7 +36,7 @@ model Workspace {
   name             String
   logoUrl          String?
   gstNumber        String?
-  currency         String                @default("USD")
+  currency         String                @default("INR")
   timezone         String                @default("UTC")
   invoicePrefix    String                @default("INV-")
   address          String?
@@ -178,7 +178,7 @@ model Quotation {
   issueDate          DateTime        @default(now())
   validUntil         DateTime
   status             QuotationStatus @default(DRAFT)
-  currency           String          @default("USD")
+  currency           String          @default("INR")
   notes              String?
   terms              String?
   subTotal           Decimal         @default(0) @db.Decimal(10, 2)

@@ -155,7 +155,7 @@ export class QuotationsRepository {
         issueDate: data.issueDate || new Date(),
         validUntil: data.validUntil,
         status: data.status || QuotationStatus.DRAFT,
-        currency: data.currency || 'USD',
+        currency: data.currency || 'INR',
         notes: data.notes || null,
         terms: data.terms || null,
         createdById: data.createdById || null,

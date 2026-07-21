@@ -12,9 +12,9 @@ export class QuotationsController {
         throw ApiError.badRequest('Workspace ID is required');
       }
 
-      const search = req.query.search ? String(req.query.search) : undefined;
-      const status = req.query.status ? (req.query.status as QuotationStatus) : undefined;
-      const clientId = req.query.clientId ? String(req.query.clientId) : undefined;
+      const search = req.query.search && String(req.query.search).trim() !== '' ? String(req.query.search).trim() : undefined;
+      const status = req.query.status && String(req.query.status).trim() !== '' ? (req.query.status as QuotationStatus) : undefined;
+      const clientId = req.query.clientId && String(req.query.clientId).trim() !== '' ? String(req.query.clientId).trim() : undefined;
       const page = req.query.page ? Number(req.query.page) : undefined;
       const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
