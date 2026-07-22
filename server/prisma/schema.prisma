@@ -30,6 +30,7 @@ model User {
   createdProducts      Product[]             @relation("ProductCreatedBy")
   createdQuotations     Quotation[]           @relation("QuotationCreatedBy")
   createdInvoices       Invoice[]             @relation("InvoiceCreatedBy")
+  createdPayments       Payment[]             @relation("PaymentCreatedBy")
 }
 
 model Workspace {
@@ -53,6 +54,7 @@ model Workspace {
   clients          Client[]
   expenses         Expense[]
   invoices         Invoice[]
+  payments         Payment[]
   products         Product[]
   quotations       Quotation[]
   taxRates         TaxRate[]
@@ -98,6 +100,7 @@ model Client {
   workspace       Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   invoices        Invoice[]
   quotations      Quotation[]
+  payments        Payment[]
 
   @@unique([workspaceId, email])
 }
@@ -244,15 +247,34 @@ model QuotationItem {
 }
 
 model Payment {
-  id              String        @id @default(uuid())
-  workspaceId     String
-  invoiceId       String
-  amount          Decimal       @db.Decimal(10, 2)
-  paymentMethod   PaymentMethod
-  referenceNumber String?
-  paymentDate     DateTime
-  createdAt       DateTime      @default(now())
-  invoice         Invoice       @relation(fields: [invoiceId], references: [id])
+  id                   String        @id @default(uuid())
+  workspaceId          String
+  invoiceId            String
+  clientId             String
+  paymentNumber        String
+  amount               Decimal       @db.Decimal(10, 2)
+  currency             String        @default("INR")
+  paymentMethod        PaymentMethod @default(CASH)
+  paymentDate          DateTime
+  transactionReference String?
+  notes                String?
+  status               PaymentStatus @default(COMPLETED)
+  isArchived           Boolean       @default(false)
+  deletedAt            DateTime?
+  createdById          String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invoice   Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  client    Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation("PaymentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, paymentNumber])
+  @@index([workspaceId, isArchived])
+  @@index([workspaceId, status])
+  @@index([workspaceId, invoiceId])
+  @@index([workspaceId, clientId])
 }
 
 model Expense {
@@ -363,9 +385,20 @@ enum QuotationStatus {
   CONVERTED
 }
 
+enum PaymentStatus {
+  COMPLETED
+  PENDING
+  FAILED
+  REFUNDED
+}
+
 enum PaymentMethod {
-  CARD
+  CASH
   BANK_TRANSFER
   UPI
-  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  CHEQUE
+  WALLET
+  OTHER
 }

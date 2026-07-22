@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Loader2,
   ChevronDown,
+  MessageCircle,
 } from 'lucide-react';
 
 const STATUS_FILTERS = [
@@ -140,6 +141,26 @@ export const InvoicesPage: React.FC = () => {
       setDeletingInvoice(null);
       setTimeout(() => setFeedbackMsg(null), 3000);
     }
+  };
+
+  const handleWhatsAppInvoice = (inv: Invoice) => {
+    const currencySymbol = workspace?.currency === 'USD' ? '$' : '₹';
+    const clientPhone = inv.client?.phone ? inv.client.phone.replace(/[^0-9]/g, '') : '';
+    const message =
+      `Hello ${inv.client?.name || 'Customer'},\n\n` +
+      `Here is your Invoice document from ${workspace?.name || 'Ledgerly Billing'}:\n\n` +
+      `🧾 Invoice #: ${inv.invoiceNumber}\n` +
+      `💰 Grand Total: ${currencySymbol}${Number(inv.grandTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
+      `📌 Due Date: ${new Date(inv.dueDate).toLocaleDateString()}\n` +
+      `💳 Balance Due: ${currencySymbol}${Number(inv.balanceDue).toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
+      `📌 Status: ${inv.status}\n\n` +
+      `📎 PDF Invoice Link:\n` +
+      `http://localhost:5000/api/v1/invoices/${inv.id}/pdf\n\n` +
+      `Thank you for your business!\n${workspace?.name || 'Ledgerly Billing'}`;
+
+    const encodedMsg = encodeURIComponent(message);
+    const waUrl = clientPhone ? `https://wa.me/${clientPhone}?text=${encodedMsg}` : `https://wa.me/?text=${encodedMsg}`;
+    window.open(waUrl, '_blank');
   };
 
   const getStatusBadgeClass = (status: string) => {
@@ -393,6 +414,15 @@ export const InvoicesPage: React.FC = () => {
 
                     <td className="py-3 px-6 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
+                        {/* 0. Send via WhatsApp */}
+                        <button
+                          onClick={() => handleWhatsAppInvoice(inv)}
+                          className="h-9 w-9 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                          title="Share Invoice via WhatsApp"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </button>
+
                         {/* 1. View Details */}
                         <button
                           onClick={() => navigate(`/invoices/${inv.id}`)}

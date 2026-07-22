@@ -20,10 +20,13 @@ import { InvoicesPage } from '@/modules/invoices/pages/InvoicesPage';
 import { CreateInvoicePage } from '@/modules/invoices/pages/CreateInvoicePage';
 import { EditInvoicePage } from '@/modules/invoices/pages/EditInvoicePage';
 import { InvoiceDetailsPage } from '@/modules/invoices/pages/InvoiceDetailsPage';
+import { PaymentsPage } from '@/modules/payments/pages/PaymentsPage';
+import { RecordPaymentPage } from '@/modules/payments/pages/RecordPaymentPage';
+import { EditPaymentPage } from '@/modules/payments/pages/EditPaymentPage';
+import { PaymentDetailsPage } from '@/modules/payments/pages/PaymentDetailsPage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ComingSoon } from '@/components/ComingSoon';
 import {
-  CreditCard,
   TrendingDown,
   BarChart3,
   Bell,
@@ -87,17 +90,10 @@ export const AppRoutes: React.FC = () => {
             <Route path="/invoices/new" element={<CreateInvoicePage />} />
             <Route path="/invoices/:id" element={<InvoiceDetailsPage />} />
             <Route path="/invoices/:id/edit" element={<EditInvoicePage />} />
-            <Route
-              path="/payments"
-              element={
-                <ComingSoon
-                  icon={CreditCard}
-                  title="Payments Processing"
-                  description="Integrate Stripe, Razorpay, or bank transfer gateways, automate payment links, and track transaction success logs."
-                  breadcrumbs={['Main', 'Payments']}
-                />
-              }
-            />
+            <Route path="/payments" element={<PaymentsPage />} />
+            <Route path="/payments/new" element={<RecordPaymentPage />} />
+            <Route path="/payments/:id" element={<PaymentDetailsPage />} />
+            <Route path="/payments/:id/edit" element={<EditPaymentPage />} />
             <Route
               path="/expenses"
               element={

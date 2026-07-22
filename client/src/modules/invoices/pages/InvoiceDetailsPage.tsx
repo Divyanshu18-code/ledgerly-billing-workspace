@@ -20,6 +20,11 @@ import {
   Sparkles,
   AlertTriangle,
   CreditCard,
+  MessageCircle,
+  Download,
+  X,
+  Paperclip,
+  ExternalLink,
 } from 'lucide-react';
 
 export const InvoiceDetailsPage: React.FC = () => {
@@ -34,6 +39,7 @@ export const InvoiceDetailsPage: React.FC = () => {
 
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [emailTo, setEmailTo] = useState('');
 
   const currencySymbol = workspace?.currency === 'USD' ? '$' : '₹';
@@ -83,12 +89,48 @@ export const InvoiceDetailsPage: React.FC = () => {
     }
   };
 
+  const handleSendWhatsApp = () => {
+    if (!invoice) return;
+    setIsWhatsAppModalOpen(true);
+  };
+
+  const executeWhatsAppLaunch = () => {
+    if (!invoice) return;
+    const clientPhone = invoice.client?.phone ? invoice.client.phone.replace(/[^0-9]/g, '') : '';
+    const message =
+      `Hello ${invoice.client?.name || 'Customer'},\n\n` +
+      `Attached is your official Invoice PDF document ${invoice.invoiceNumber} from ${workspace?.name || 'Ledgerly Billing'}.\n\n` +
+      `🧾 Invoice #: ${invoice.invoiceNumber}\n` +
+      `💰 Grand Total: ${currencySymbol}${Number(invoice.grandTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
+      `💳 Balance Due: ${currencySymbol}${Number(invoice.balanceDue).toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
+      `📌 Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}\n\n` +
+      `Thank you for your business!`;
+
+    const encodedMsg = encodeURIComponent(message);
+    const waUrl = clientPhone ? `https://wa.me/${clientPhone}?text=${encodedMsg}` : `https://wa.me/?text=${encodedMsg}`;
+    window.open(waUrl, '_blank');
+  };
+
   const handleSendEmail = (e: React.FormEvent) => {
     e.preventDefault();
+    const subject = encodeURIComponent(`Invoice ${invoice.invoiceNumber} - ${workspace?.name || 'Ledgerly Billing'}`);
+    const body = encodeURIComponent(
+      `Dear ${invoice.client?.name || 'Valued Customer'},\n\n` +
+        `Please find billing details for Invoice ${invoice.invoiceNumber}:\n\n` +
+        `- Invoice Number: ${invoice.invoiceNumber}\n` +
+        `- Issue Date: ${new Date(invoice.issueDate).toLocaleDateString()}\n` +
+        `- Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}\n` +
+        `- Grand Total: ${currencySymbol}${Number(invoice.grandTotal).toFixed(2)}\n` +
+        `- Balance Due: ${currencySymbol}${Number(invoice.balanceDue).toFixed(2)}\n\n` +
+        `📎 Direct PDF Invoice Download: http://localhost:5000/api/v1/invoices/${invoice.id}/pdf\n\n` +
+        `Thank you for your prompt payment!\n\n` +
+        `Best regards,\n${workspace?.name || 'Ledgerly Billing Team'}`
+    );
+    window.open(`mailto:${emailTo}?subject=${subject}&body=${body}`, '_blank');
     setIsEmailModalOpen(false);
     setFeedbackMsg({
       type: 'success',
-      message: `PDF Billing Invoice ${invoice.invoiceNumber} queued for dispatch to ${emailTo || invoice.client.email}`,
+      message: `Invoice ${invoice.invoiceNumber} email client opened for ${emailTo}`,
     });
     setTimeout(() => setFeedbackMsg(null), 4000);
   };
@@ -137,6 +179,16 @@ export const InvoiceDetailsPage: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto justify-start md:justify-end shrink-0 py-1">
           <button
             type="button"
+            onClick={handleSendWhatsApp}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition cursor-pointer shrink-0 active:scale-98"
+            title="Share Invoice PDF via WhatsApp"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            <span>WhatsApp</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => window.print()}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
           >
@@ -177,7 +229,7 @@ export const InvoiceDetailsPage: React.FC = () => {
           {invoice.status !== 'PAID' && (
             <button
               type="button"
-              onClick={() => handleStatusChange('PAID')}
+              onClick={() => navigate(`/payments/new?invoiceId=${invoice.id}`)}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-md shadow-emerald-500/20 transition cursor-pointer shrink-0 active:scale-98"
             >
               <CreditCard className="h-4 w-4" />
@@ -382,13 +434,43 @@ export const InvoiceDetailsPage: React.FC = () => {
       {/* Email Modal */}
       {isEmailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in print:hidden">
-          <div className="w-full max-w-md p-6 rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#161424] shadow-2xl space-y-4">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white font-heading">
-              Dispatch Billing Invoice via Email
-            </h3>
+          <div className="w-full max-w-lg p-6 rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#161424] shadow-2xl space-y-5">
+            <div className="flex justify-between items-center border-b border-gray-200/80 dark:border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <Mail className="w-5 h-5 text-blue-500" />
+                <h3 className="text-base font-bold text-gray-900 dark:text-white font-heading">
+                  Dispatch Billing Invoice via Email
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEmailModalOpen(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick 2-Step Banner */}
+            <div className="p-3 rounded-xl border border-blue-500/20 bg-blue-500/10 flex items-center justify-between text-xs">
+              <div className="text-gray-700 dark:text-gray-300">
+                <span className="font-bold text-blue-400">Step 1:</span> Save PDF to your device first, then attach to email
+              </div>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shrink-0"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Download PDF
+              </button>
+            </div>
+
             <form onSubmit={handleSendEmail} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">Recipient Email Address</label>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Recipient Email Address
+                </label>
                 <input
                   type="email"
                   value={emailTo}
@@ -409,12 +491,80 @@ export const InvoiceDetailsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md cursor-pointer"
                 >
-                  Send Invoice PDF
+                  <Send className="w-4 h-4" />
+                  Open Email &amp; Send PDF
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp PDF Share Modal */}
+      {isWhatsAppModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in print:hidden">
+          <div className="w-full max-w-md p-6 rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#161424] shadow-2xl space-y-5">
+            <div className="flex justify-between items-center border-b border-gray-200/80 dark:border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white font-heading">
+                    Send PDF Document on WhatsApp
+                  </h3>
+                  <p className="text-[11px] text-gray-400">Invoice #{invoice.invoiceNumber}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsWhatsAppModalOpen(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Step-by-Step PDF Guide */}
+            <div className="space-y-3">
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-2">
+                <div className="font-bold text-emerald-400 flex items-center gap-1.5">
+                  <Paperclip className="w-4 h-4" />
+                  <span>How to attach actual PDF in WhatsApp:</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-gray-700 dark:text-gray-300 text-[11px]">
+                  <li>Click <span className="font-bold text-emerald-500">"1. Download PDF File"</span> below</li>
+                  <li>Click <span className="font-bold text-emerald-500">"2. Open WhatsApp Chat"</span></li>
+                  <li>In WhatsApp, click 📎 <strong>Paperclip</strong> $\rightarrow$ 📄 <strong>Document</strong> $\rightarrow$ select the downloaded PDF file!</li>
+                </ol>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition active:scale-98 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>1. Download PDF File ({invoice.invoiceNumber}.pdf)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    executeWhatsAppLaunch();
+                    setIsWhatsAppModalOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-900 dark:text-white font-bold text-xs transition cursor-pointer"
+                >
+                  <ExternalLink className="w-4 h-4 text-emerald-500" />
+                  <span>2. Open WhatsApp Chat</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
