@@ -67,17 +67,17 @@ export const DashboardPage: React.FC = () => {
   const pendingPct = totalInvoicesCount > 0 ? Math.round((pendingCount / totalInvoicesCount) * 100) : 0;
   const overduePct = totalInvoicesCount > 0 ? Math.max(0, 100 - paidPct - pendingPct) : 0;
 
-  // Calculate Monthly Invoiced Revenue for full 12 months (Jan - Dec of current year)
+  // Calculate Monthly Invoiced Revenue for trailing 9 months ending at current month (no future months)
   const getMonthlyRevenueData = () => {
-    const currentYear = new Date().getFullYear();
     const monthsList: { label: string; year: number; month: number; total: number }[] = [];
+    const now = new Date();
 
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(currentYear, i, 1);
+    for (let i = 8; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       monthsList.push({
         label: d.toLocaleString('en-US', { month: 'short' }),
-        year: currentYear,
-        month: i,
+        year: d.getFullYear(),
+        month: d.getMonth(),
         total: 0,
       });
     }
@@ -85,15 +85,15 @@ export const DashboardPage: React.FC = () => {
     invoices.forEach((inv) => {
       if (!inv.issueDate) return;
       const invDate = new Date(inv.issueDate);
-      if (invDate.getFullYear() === currentYear) {
-        const match = monthsList.find((m) => m.month === invDate.getMonth());
-        if (match) {
-          match.total += Number(inv.grandTotal || 0);
-        }
+      const match = monthsList.find(
+        (m) => m.year === invDate.getFullYear() && m.month === invDate.getMonth()
+      );
+      if (match) {
+        match.total += Number(inv.grandTotal || 0);
       }
     });
 
-    const maxTotal = Math.max(...monthsList.map((m) => m.total), 1);
+    const maxTotal = Math.max(...monthsList.map((m) => m.total), 1000);
     return { monthsList, maxTotal };
   };
 
@@ -102,21 +102,38 @@ export const DashboardPage: React.FC = () => {
   // Dynamic SVG Curve Points
   const points = monthsList.map((m, idx) => {
     const x = (idx / (monthsList.length - 1)) * 900 + 50;
-    const y = 160 - (m.total / maxTotal) * 120;
+    const y = m.total === 0 ? 190 : 180 - (m.total / maxTotal) * 150;
     return { x, y, label: m.label, total: m.total };
   });
 
-  const generateSmoothPath = (pts: { x: number; y: number }[]) => {
+  const generateSmoothPath = (pts: { x: number; y: number; total: number }[]) => {
     if (pts.length === 0) return '';
     let d = `M ${pts[0].x} ${pts[0].y}`;
     for (let i = 0; i < pts.length - 1; i++) {
       const curr = pts[i];
       const next = pts[i + 1];
-      const cp1x = curr.x + (next.x - curr.x) / 2;
-      const cp1y = curr.y;
-      const cp2x = curr.x + (next.x - curr.x) / 2;
-      const cp2y = next.y;
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} ${next.y}`;
+
+      if (curr.total === 0 && next.total === 0) {
+        d += ` L ${next.x} 190`;
+      } else if (curr.total === 0 && next.total > 0) {
+        const cp1x = curr.x + (next.x - curr.x) * 0.6;
+        const cp1y = 190;
+        const cp2x = curr.x + (next.x - curr.x) * 0.85;
+        const cp2y = next.y;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} ${next.y}`;
+      } else if (curr.total > 0 && next.total === 0) {
+        const cp1x = curr.x + (next.x - curr.x) * 0.15;
+        const cp1y = curr.y;
+        const cp2x = curr.x + (next.x - curr.x) * 0.4;
+        const cp2y = 190;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} 190`;
+      } else {
+        const cp1x = curr.x + (next.x - curr.x) / 2;
+        const cp1y = curr.y;
+        const cp2x = curr.x + (next.x - curr.x) / 2;
+        const cp2y = next.y;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} ${next.y}`;
+      }
     }
     return d;
   };
@@ -228,7 +245,7 @@ export const DashboardPage: React.FC = () => {
         })}
       </div>
 
-      {/* Live Invoiced Revenue Chart matching screenshot 1:1 */}
+      {/* Live Invoiced Revenue Chart matching screenshot layout with website theme colors */}
       <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm transition-all duration-300">
         <div className="flex justify-between items-center mb-6">
           <div className="space-y-1">
@@ -259,84 +276,122 @@ export const DashboardPage: React.FC = () => {
             {/* Dynamic SVG graphic */}
             <svg className="absolute inset-x-0 top-1 h-48 w-full overflow-visible" viewBox="0 0 1000 200" preserveAspectRatio="none">
               <defs>
-                <linearGradient id="orangeGlow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(249, 115, 22, 0.35)" />
-                  <stop offset="100%" stopColor="rgba(249, 115, 22, 0.0)" />
+                <linearGradient id="blueGlow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="rgba(37, 99, 235, 0.35)" />
+                  <stop offset="100%" stopColor="rgba(37, 99, 235, 0.0)" />
                 </linearGradient>
               </defs>
 
-              {/* Dynamic Glowing Orange Area fill */}
+              {/* Dynamic Glowing Blue Area fill */}
               {areaPath && (
                 <path
                   d={areaPath}
-                  fill="url(#orangeGlow)"
-                  className="w-full transition-all duration-700"
+                  fill="url(#blueGlow)"
                 />
               )}
 
-              {/* Dynamic Smooth Orange Line stroke */}
+              {/* Dynamic Smooth Blue Line stroke */}
               {linePath && (
                 <path
                   d={linePath}
                   fill="none"
-                  stroke="#f97316"
+                  stroke="#2563eb"
                   strokeWidth="3.5"
                   strokeLinecap="round"
-                  className="w-full transition-all duration-700"
                 />
               )}
 
-              {/* Dynamic Data Points & Vertical Guide Lines */}
-              {points.map((pt, idx) => (
-                <g key={idx} className="group/pt cursor-pointer">
-                  {/* Vertical Guide Line on Hover */}
-                  <line
-                    x1={pt.x}
-                    y1={pt.y}
-                    x2={pt.x}
-                    y2={190}
-                    stroke="#f97316"
-                    strokeWidth="1.5"
-                    strokeDasharray="3 3"
-                    className="opacity-0 group-hover/pt:opacity-100 transition-opacity"
-                  />
-                  {/* Glowing Dot */}
-                  <circle
-                    cx={pt.x}
-                    cy={pt.y}
-                    r={hoveredPoint === idx ? 6 : 4}
-                    fill="#ffffff"
-                    stroke="#f97316"
-                    strokeWidth="3"
-                    onMouseEnter={() => setHoveredPoint(idx)}
-                    onMouseLeave={() => setHoveredPoint(null)}
-                    className="transition-all duration-200"
-                  />
-                </g>
-              ))}
+              {/* Dynamic Data Points & Vertical Guide Lines - Responsive on Hover & Default Current Month */}
+              {(() => {
+                const activeIdx = hoveredPoint !== null ? hoveredPoint : points.length - 1;
+                return points.map((pt, idx) => {
+                  const isActive = activeIdx === idx;
+                  return (
+                    <g
+                      key={idx}
+                      className="cursor-pointer"
+                      onMouseEnter={() => setHoveredPoint(idx)}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                    >
+                      {/* Invisible Larger Hit Area for Easy Hovering */}
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r="18"
+                        fill="transparent"
+                      />
+
+                      {/* Solid Vertical Guide Line - perfectly aligned with month label below */}
+                      {isActive && (
+                        <line
+                          x1={pt.x}
+                          y1={pt.y}
+                          x2={pt.x}
+                          y2={195}
+                          stroke="#38bdf8"
+                          strokeWidth="2"
+                        />
+                      )}
+
+                      {/* Data Dot - 100% Fixed Position */}
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r="5"
+                        fill={isActive ? '#ffffff' : '#2563eb'}
+                        stroke={isActive ? '#38bdf8' : '#ffffff'}
+                        strokeWidth={isActive ? '3.5' : '2'}
+                      />
+                    </g>
+                  );
+                });
+              })()}
             </svg>
 
-            {/* Floating Hover Card matching screenshot 1:1 */}
-            {hoveredPoint !== null && points[hoveredPoint] && (
-              <div
-                style={{
-                  left: `${(hoveredPoint / (points.length - 1)) * 88 + 5}%`,
-                  top: `${Math.max(10, (points[hoveredPoint].y / 200) * 100 - 30)}%`,
-                }}
-                className="absolute z-30 p-2.5 rounded-xl border border-gray-700/80 dark:border-white/15 bg-[#161424] text-white shadow-2xl space-y-0.5 pointer-events-none transform -translate-x-1/2 -translate-y-full backdrop-blur-xl font-sans"
-              >
-                <div className="text-xs font-bold text-gray-300">{points[hoveredPoint].label}</div>
-                <div className="text-xs font-mono font-semibold text-orange-400">
-                  value : {points[hoveredPoint].total.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+            {/* Floating Active Tooltip Card - Automatically displays for active/hovered month */}
+            {(() => {
+              const activeIdx = hoveredPoint !== null ? hoveredPoint : points.length - 1;
+              if (activeIdx < 0 || !points[activeIdx]) return null;
+              const pt = points[activeIdx];
+              return (
+                <div
+                  style={{
+                    left: `${(pt.x / 1000) * 100}%`,
+                    top: `${Math.max(10, (pt.y / 200) * 100 - 30)}%`,
+                  }}
+                  className="absolute z-30 p-2.5 rounded-xl border border-gray-700/80 dark:border-white/15 bg-[#121118] text-white shadow-2xl space-y-0.5 pointer-events-none transform -translate-x-1/2 -translate-y-full backdrop-blur-xl font-sans"
+                >
+                  <div className="text-xs font-bold text-gray-300">{pt.label}</div>
+                  <div className="text-xs font-mono font-semibold text-blue-400">
+                    value : {pt.total.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
-            {/* Bottom Month Labels matching screenshot */}
-            <div className="absolute bottom-0 inset-x-0 flex justify-between px-2 text-[11px] text-gray-400 dark:text-gray-400 font-medium">
-              {monthsList.map((m) => (
-                <span key={`${m.year}-${m.month}`}>{m.label}</span>
-              ))}
+            {/* Month Labels - Hoverable and Aligned Directly Under Vertical Line */}
+            <div className="absolute bottom-0 inset-x-0 h-6 text-[11px] text-gray-400 dark:text-gray-400 font-medium select-none">
+              {monthsList.map((m, idx) => {
+                const activeIdx = hoveredPoint !== null ? hoveredPoint : points.length - 1;
+                const isActive = activeIdx === idx;
+                const pt = points[idx];
+                return (
+                  <button
+                    key={`${m.year}-${m.month}`}
+                    type="button"
+                    style={{ left: `${(pt.x / 1000) * 100}%` }}
+                    onMouseEnter={() => setHoveredPoint(idx)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                    className={`absolute bottom-0 transform -translate-x-1/2 cursor-pointer px-1.5 py-0.5 rounded-md transition-all ${
+                      isActive
+                        ? 'text-blue-500 font-bold bg-blue-500/10 border border-blue-500/30'
+                        : 'hover:text-blue-400 hover:bg-white/5'
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

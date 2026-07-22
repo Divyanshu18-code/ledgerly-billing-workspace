@@ -7,9 +7,18 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: true,
       refetchOnReconnect: true,
-      refetchInterval: 10000, // Automatic real-time background sync every 10 seconds
-      staleTime: 2000,
-      retry: 1,
+      refetchInterval: (query) => {
+        // Stop background auto-polling if unauthenticated 401
+        if (query.state.error && (query.state.error as any)?.response?.status === 401) {
+          return false;
+        }
+        return 15000;
+      },
+      staleTime: 5000,
+      retry: (failureCount, error: any) => {
+        if (error?.response?.status === 401) return false;
+        return failureCount < 1;
+      },
     },
   },
 });
