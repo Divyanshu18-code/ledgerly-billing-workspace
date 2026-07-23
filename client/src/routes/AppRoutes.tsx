@@ -28,10 +28,10 @@ import { ExpensesPage } from '@/modules/expenses/pages/ExpensesPage';
 import { CreateExpensePage } from '@/modules/expenses/pages/CreateExpensePage';
 import { ExpenseDetailsPage } from '@/modules/expenses/pages/ExpenseDetailsPage';
 import { EditExpensePage } from '@/modules/expenses/pages/EditExpensePage';
+import { ReportsDashboardPage } from '@/modules/reports/pages/ReportsDashboardPage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ComingSoon } from '@/components/ComingSoon';
 import {
-  BarChart3,
   Bell,
   Bot,
   Scroll,
@@ -101,17 +101,7 @@ export const AppRoutes: React.FC = () => {
             <Route path="/expenses/new" element={<CreateExpensePage />} />
             <Route path="/expenses/:id" element={<ExpenseDetailsPage />} />
             <Route path="/expenses/:id/edit" element={<EditExpensePage />} />
-            <Route
-              path="/reports"
-              element={
-                <ComingSoon
-                  icon={BarChart3}
-                  title="Financial Reports"
-                  description="Access real-time balance sheets, Profit & Loss graphs, tax estimations, and overall company cashflow analytics."
-                  breadcrumbs={['Main', 'Reports']}
-                />
-              }
-            />
+            <Route path="/reports" element={<ReportsDashboardPage />} />
 
             {/* Management Paths */}
             <Route
