@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   useQuotationsQuery,
@@ -15,8 +15,6 @@ import {
   CheckCircle2,
   Clock,
   ArrowRightLeft,
-  ChevronDown,
-  Check,
   Eye,
   Edit3,
   Copy,
@@ -27,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
+  MoreVertical,
 } from 'lucide-react';
 
 export const QuotationsPage: React.FC = () => {
@@ -41,13 +40,10 @@ export const QuotationsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const limit = 8;
 
-  // Custom Dropdown State
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
-  const statusDropdownRef = useRef<HTMLDivElement>(null);
-
   // Modals / Feedback
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [deletingQuotation, setDeletingQuotation] = useState<Quotation | null>(null);
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   // Query Hook
   const { data: responseData, isLoading, refetch } = useQuotationsQuery({
@@ -65,17 +61,6 @@ export const QuotationsPage: React.FC = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
-
-  // Click away for status dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
-        setIsStatusDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   useEffect(() => {
     if (location.state?.message) {
@@ -267,8 +252,8 @@ export const QuotationsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Action Bar (Search & Filter Dropdown) */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/60 dark:bg-[#121118]/60 backdrop-blur-xl relative z-20 shadow-sm overflow-visible">
+      {/* Action Bar with Photo 2 Style Horizontal Status Filter Tabs */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-4 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/60 dark:bg-[#121118]/60 backdrop-blur-xl relative z-20 shadow-sm overflow-visible">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -281,88 +266,35 @@ export const QuotationsPage: React.FC = () => {
           />
         </div>
 
-        {/* Filter Dropdown */}
-        <div className="flex items-center gap-2 overflow-visible">
-          <div className="relative" ref={statusDropdownRef}>
-            <button
-              type="button"
-              onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-              className="px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#16151a] hover:bg-gray-50 dark:hover:bg-white/5 transition flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-white shadow-xs cursor-pointer"
-            >
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  statusFilter === 'ACCEPTED' || statusFilter === 'APPROVED'
-                    ? 'bg-emerald-500'
-                    : statusFilter === 'CONVERTED'
-                    ? 'bg-purple-500'
-                    : statusFilter === 'SENT'
-                    ? 'bg-blue-500'
-                    : statusFilter === 'REJECTED' || statusFilter === 'EXPIRED'
-                    ? 'bg-rose-500'
-                    : 'bg-gray-400'
+        {/* Photo 2 Horizontal Filter Tabs */}
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#13111c]/80 backdrop-blur-2xl overflow-x-auto shadow-xs max-w-full">
+          {[
+            { id: 'ALL', label: `All (${totalCount})` },
+            { id: 'DRAFT', label: 'Draft' },
+            { id: 'SENT', label: 'Sent' },
+            { id: 'ACCEPTED', label: 'Accepted' },
+            { id: 'REJECTED', label: 'Rejected' },
+            { id: 'CONVERTED', label: 'Converted' },
+          ].map((st) => {
+            const isActive = statusFilter === st.id;
+            return (
+              <button
+                key={st.id}
+                type="button"
+                onClick={() => {
+                  setStatusFilter(st.id);
+                  setPage(1);
+                }}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'
                 }`}
-              />
-              <span>
-                {statusFilter === 'ALL'
-                  ? 'All Statuses'
-                  : statusFilter === 'DRAFT'
-                  ? 'Draft Proposals'
-                  : statusFilter === 'SENT'
-                  ? 'Sent to Client'
-                  : statusFilter === 'ACCEPTED'
-                  ? 'Accepted Quotes'
-                  : statusFilter === 'REJECTED'
-                  ? 'Rejected Quotes'
-                  : statusFilter === 'CONVERTED'
-                  ? 'Converted to Invoice'
-                  : statusFilter}
-              </span>
-              <ChevronDown
-                className={`h-3.5 w-3.5 text-gray-400 transition-transform duration-200 ${
-                  isStatusDropdownOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-
-            {/* Smooth Floating Popover Menu */}
-            {isStatusDropdownOpen && (
-              <div className="absolute right-0 top-[115%] z-50 w-48 p-1.5 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/95 dark:bg-[#14131a]/95 backdrop-blur-xl shadow-xl space-y-0.5">
-                <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-white/5 mb-1">
-                  Filter Quotations
-                </div>
-
-                {[
-                  { id: 'ALL', label: 'All Statuses', color: 'bg-gray-400' },
-                  { id: 'DRAFT', label: 'Draft Proposals', color: 'bg-gray-500' },
-                  { id: 'SENT', label: 'Sent to Client', color: 'bg-blue-500' },
-                  { id: 'ACCEPTED', label: 'Accepted Quotes', color: 'bg-emerald-500' },
-                  { id: 'REJECTED', label: 'Rejected Quotes', color: 'bg-rose-500' },
-                  { id: 'CONVERTED', label: 'Converted to Invoice', color: 'bg-purple-500' },
-                ].map((st) => (
-                  <button
-                    key={st.id}
-                    type="button"
-                    onClick={() => {
-                      setStatusFilter(st.id);
-                      setPage(1);
-                      setIsStatusDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition cursor-pointer ${
-                      statusFilter === st.id
-                        ? 'bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 font-bold'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`h-2 w-2 rounded-full ${st.color}`} />
-                      <span>{st.label}</span>
-                    </div>
-                    {statusFilter === st.id && <Check className="h-3.5 w-3.5 text-blue-500" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+              >
+                {st.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -431,45 +363,77 @@ export const QuotationsPage: React.FC = () => {
                       {currencySymbol}
                       {Number(q.grandTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="py-3.5 px-4 text-right relative" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => navigate(`/quotations/${q.id}`)}
-                          className="h-9 w-9 rounded-2xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                          className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
                           title="View Proposal Details"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button
-                          onClick={() => navigate(`/quotations/${q.id}/edit`)}
-                          className="h-9 w-9 rounded-2xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-                          title="Edit Proposal"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDuplicate(q.id, q.quotationNumber)}
-                          className="h-9 w-9 rounded-2xl border border-blue-500/20 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-                          title="Duplicate Proposal"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </button>
-                        {q.status !== 'CONVERTED' && (
+
+                        <div className="relative">
                           <button
-                            onClick={() => handleConvert(q.id, q.quotationNumber)}
-                            className="h-9 w-9 rounded-2xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 dark:text-purple-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-                            title="Convert to Invoice"
+                            onClick={() => setOpenActionId(openActionId === q.id ? null : q.id)}
+                            className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
+                            title="More actions"
                           >
-                            <FileCheck2 className="h-4 w-4" />
+                            <MoreVertical className="h-4 w-4" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => setDeletingQuotation(q)}
-                          className="h-9 w-9 rounded-2xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-                          title="Delete Quotation"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+
+                          {openActionId === q.id && (
+                            <div className="absolute right-0 top-[110%] z-50 w-48 p-1.5 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-0.5 backdrop-blur-xl text-left">
+                              <button
+                                onClick={() => {
+                                  navigate(`/quotations/${q.id}/edit`);
+                                  setOpenActionId(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+                              >
+                                <Edit3 className="h-3.5 w-3.5 text-amber-500" />
+                                <span>Edit Proposal</span>
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  handleDuplicate(q.id, q.quotationNumber);
+                                  setOpenActionId(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+                              >
+                                <Copy className="h-3.5 w-3.5 text-blue-500" />
+                                <span>Duplicate</span>
+                              </button>
+
+                              {q.status !== 'CONVERTED' && (
+                                <button
+                                  onClick={() => {
+                                    handleConvert(q.id, q.quotationNumber);
+                                    setOpenActionId(null);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+                                >
+                                  <FileCheck2 className="h-3.5 w-3.5 text-purple-500" />
+                                  <span>Convert to Invoice</span>
+                                </button>
+                              )}
+
+                              <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
+
+                              <button
+                                onClick={() => {
+                                  setDeletingQuotation(q);
+                                  setOpenActionId(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>Delete Quotation</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>

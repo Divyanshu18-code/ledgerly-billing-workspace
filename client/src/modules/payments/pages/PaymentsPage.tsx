@@ -19,6 +19,7 @@ import {
   RefreshCw,
   ChevronDown,
   MessageCircle,
+  MoreVertical,
 } from 'lucide-react';
 import { usePaymentsQuery, useDeletePaymentMutation } from '../hooks/usePayments';
 import type { PaymentItem } from '../hooks/usePayments';
@@ -33,6 +34,7 @@ export const PaymentsPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [methodFilter, setMethodFilter] = useState<string>('');
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   const { data: response, isLoading, refetch } = usePaymentsQuery({
     page,
@@ -218,10 +220,10 @@ export const PaymentsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter & Search Toolbar */}
-      <div className="p-4 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      {/* Filter & Search Toolbar with Photo 2 Style Horizontal Status Filter Tabs */}
+      <div className="p-4 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         {/* Search */}
-        <div className="relative w-full md:w-96">
+        <div className="relative w-full lg:w-72">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -231,38 +233,51 @@ export const PaymentsPage: React.FC = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400"
+            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/30 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400"
           />
         </div>
 
-        {/* Status & Method Filters */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-          <div className="relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-              className="pl-3 pr-8 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#161420] text-xs font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 appearance-none cursor-pointer transition-all hover:border-blue-500/50 shadow-xs"
-            >
-              <option value="" className="bg-white dark:bg-[#161420]">All Statuses</option>
-              <option value="COMPLETED" className="bg-white dark:bg-[#161420]">Completed</option>
-              <option value="PENDING" className="bg-white dark:bg-[#161420]">Pending</option>
-              <option value="REFUNDED" className="bg-white dark:bg-[#161420]">Refunded</option>
-              <option value="FAILED" className="bg-white dark:bg-[#161420]">Failed</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        {/* Right Controls: Horizontal Status Filter Tabs + Method Filter */}
+        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-start lg:justify-end">
+          {/* Photo 2 Horizontal Status Filter Tabs */}
+          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#13111c]/80 backdrop-blur-2xl overflow-x-auto shadow-xs max-w-full">
+            {[
+              { value: '', label: `All (${response?.pagination?.total || 0})` },
+              { value: 'COMPLETED', label: 'Completed' },
+              { value: 'PENDING', label: 'Pending' },
+              { value: 'REFUNDED', label: 'Refunded' },
+              { value: 'FAILED', label: 'Failed' },
+            ].map((st) => {
+              const isActive = statusFilter === st.value;
+              return (
+                <button
+                  key={st.value}
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter(st.value);
+                    setPage(1);
+                  }}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
+                    isActive
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="relative">
+          {/* Payment Method Dropdown */}
+          <div className="relative shrink-0">
             <select
               value={methodFilter}
               onChange={(e) => {
                 setMethodFilter(e.target.value);
                 setPage(1);
               }}
-              className="pl-3 pr-8 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#161420] text-xs font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 appearance-none cursor-pointer transition-all hover:border-blue-500/50 shadow-xs"
+              className="pl-3 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#161420] text-xs font-semibold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 appearance-none cursor-pointer transition-all hover:border-blue-500/50 shadow-xs"
             >
               <option value="" className="bg-white dark:bg-[#161420]">All Methods</option>
               <option value="CASH" className="bg-white dark:bg-[#161420]">Cash</option>
@@ -357,43 +372,64 @@ export const PaymentsPage: React.FC = () => {
 
                     <td className="py-3.5 px-4">{getStatusBadge(payment.status)}</td>
 
-                    <td className="py-3.5 px-4 text-center">
+                    <td className="py-3.5 px-4 text-center relative" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1.5">
-                        {/* Send WhatsApp */}
+                        {/* Quick WhatsApp Action */}
                         <button
                           onClick={() => handleWhatsApp(payment)}
-                          className="p-1.5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                          className="p-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 transition cursor-pointer active:scale-95"
                           title="Share via WhatsApp"
                         >
                           <MessageCircle className="w-4 h-4" />
                         </button>
 
-                        {/* Eye Details */}
+                        {/* Quick View Details */}
                         <button
                           onClick={() => navigate(`/payments/${payment.id}`)}
-                          className="p-1.5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                          className="p-1.5 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
                           title="View Payment Details"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
 
-                        {/* Edit Pencil */}
-                        <button
-                          onClick={() => navigate(`/payments/${payment.id}/edit`)}
-                          className="p-1.5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-amber-50 dark:hover:bg-amber-500/10 text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
-                          title="Edit Payment Record"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
+                        {/* Sleek 3-Dots Dropdown Menu */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setOpenActionId(openActionId === payment.id ? null : payment.id)}
+                            className="p-1.5 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
+                            title="More actions"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
 
-                        {/* Delete Trash */}
-                        <button
-                          onClick={() => handleDelete(payment.id, payment.paymentNumber)}
-                          className="p-1.5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
-                          title="Soft Delete Payment"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                          {openActionId === payment.id && (
+                            <div className="absolute right-0 top-[110%] z-50 w-44 p-1.5 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-0.5 backdrop-blur-xl text-left">
+                              <button
+                                onClick={() => {
+                                  navigate(`/payments/${payment.id}/edit`);
+                                  setOpenActionId(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+                              >
+                                <Edit3 className="h-3.5 w-3.5 text-amber-500" />
+                                <span>Edit Payment</span>
+                              </button>
+
+                              <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
+
+                              <button
+                                onClick={() => {
+                                  handleDelete(payment.id, payment.paymentNumber);
+                                  setOpenActionId(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>Delete Payment</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>

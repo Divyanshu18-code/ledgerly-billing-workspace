@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   useInvoicesQuery,
@@ -11,7 +11,6 @@ import { useWorkspaceData } from '@/modules/workspace/hooks/useWorkspace';
 import {
   Plus,
   Search,
-  Filter,
   FileText,
   CheckCircle2,
   Clock,
@@ -23,8 +22,8 @@ import {
   Trash2,
   AlertCircle,
   Loader2,
-  ChevronDown,
   MessageCircle,
+  MoreVertical,
 } from 'lucide-react';
 
 const STATUS_FILTERS = [
@@ -49,10 +48,8 @@ export const InvoicesPage: React.FC = () => {
   const [limit] = useState(10);
 
   const [deletingInvoice, setDeletingInvoice] = useState<Invoice | null>(null);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-  const filterRef = useRef<HTMLDivElement>(null);
 
   // Debounce search input
   useEffect(() => {
@@ -71,17 +68,6 @@ export const InvoicesPage: React.FC = () => {
       setTimeout(() => setFeedbackMsg(null), 4000);
     }
   }, [location.state]);
-
-  // Click away listener for filters
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setIsFilterOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const { data: responseData, isLoading, isError, refetch } = useInvoicesQuery({
     search: debouncedSearch,
@@ -263,9 +249,9 @@ export const InvoicesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 relative z-20">
-        <div className="relative w-full sm:w-80">
+      {/* Filter & Search Bar with Photo 2 Style Horizontal Status Filter Tabs */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 relative z-20">
+        <div className="relative w-full lg:w-72">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
@@ -276,44 +262,29 @@ export const InvoicesPage: React.FC = () => {
           />
         </div>
 
-        {/* Filter Popover */}
-        <div className="relative w-full sm:w-auto" ref={filterRef}>
-          <button
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="w-full sm:w-auto flex items-center justify-between gap-2.5 px-4 py-2.5 rounded-2xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#13111c]/80 text-gray-700 dark:text-gray-300 text-xs font-semibold hover:bg-gray-100 dark:hover:bg-white/10 transition shadow-xs cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-blue-500" />
-              <span>{STATUS_FILTERS.find((f) => f.value === selectedStatus)?.label || 'Filter Status'}</span>
-            </div>
-            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isFilterOpen ? 'rotate-180' : ''}`} />
-          </button>
-
-          {isFilterOpen && (
-            <div className="absolute right-0 top-[108%] z-50 w-52 p-2 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-1 backdrop-blur-xl">
-              {STATUS_FILTERS.map((st) => (
-                <button
-                  key={st.value}
-                  onClick={() => {
-                    setSelectedStatus(st.value);
-                    setPage(1);
-                    setIsFilterOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer text-left ${
-                    selectedStatus === st.value
-                      ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-bold'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {st.color && <span className={`h-2 w-2 rounded-full ${st.color}`} />}
-                    <span>{st.label}</span>
-                  </div>
-                  {selectedStatus === st.value && <CheckCircle2 className="h-4 w-4 text-blue-500" />}
-                </button>
-              ))}
-            </div>
-          )}
+        {/* Photo 2 Horizontal Filter Tabs */}
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#13111c]/80 backdrop-blur-2xl overflow-x-auto shadow-xs max-w-full">
+          {STATUS_FILTERS.map((st) => {
+            const isActive = selectedStatus === st.value;
+            const labelText = st.value === '' ? `All (${totalInvoicesCount})` : st.label;
+            return (
+              <button
+                key={st.value}
+                type="button"
+                onClick={() => {
+                  setSelectedStatus(st.value);
+                  setPage(1);
+                }}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'
+                }`}
+              >
+                {labelText}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -412,63 +383,88 @@ export const InvoicesPage: React.FC = () => {
                       {Number(inv.balanceDue).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
 
-                    <td className="py-3 px-6 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-2">
-                        {/* 0. Send via WhatsApp */}
+                    <td className="py-3 px-6 text-right relative" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {/* Quick WhatsApp Action */}
                         <button
                           onClick={() => handleWhatsAppInvoice(inv)}
-                          className="h-9 w-9 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                          className="p-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 transition cursor-pointer active:scale-95"
                           title="Share Invoice via WhatsApp"
                         >
                           <MessageCircle className="h-4 w-4" />
                         </button>
 
-                        {/* 1. View Details */}
+                        {/* Quick View Details */}
                         <button
                           onClick={() => navigate(`/invoices/${inv.id}`)}
-                          className="h-9 w-9 rounded-2xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                          className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
                           title="View Details"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
 
-                        {/* 2. Edit Invoice */}
-                        <button
-                          onClick={() => navigate(`/invoices/${inv.id}/edit`)}
-                          className="h-9 w-9 rounded-2xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-                          title="Edit Invoice"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </button>
-
-                        {/* 3. Duplicate Invoice */}
-                        <button
-                          onClick={() => handleDuplicate(inv)}
-                          className="h-9 w-9 rounded-2xl border border-blue-500/20 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-                          title="Duplicate Invoice"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </button>
-
-                        {/* 4. Mark as Paid */}
-                        {inv.status !== 'PAID' && (
+                        {/* Sleek 3-Dots Dropdown Menu */}
+                        <div className="relative">
                           <button
-                            onClick={() => handleStatusChange(inv, 'PAID')}
-                            className="h-9 w-9 rounded-2xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 dark:text-purple-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-                            title="Mark as Paid"
+                            onClick={() => setOpenActionId(openActionId === inv.id ? null : inv.id)}
+                            className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
+                            title="More actions"
                           >
-                            <CheckCircle2 className="h-4 w-4" />
+                            <MoreVertical className="h-4 w-4" />
                           </button>
-                        )}
 
-                        {/* 5. Delete Invoice */}
-                        <button
-                          onClick={() => setDeletingInvoice(inv)}
-                          className="h-9 w-9 rounded-2xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-                          title="Delete Invoice"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                          {openActionId === inv.id && (
+                            <div className="absolute right-0 top-[110%] z-50 w-48 p-1.5 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-0.5 backdrop-blur-xl text-left">
+                              <button
+                                onClick={() => {
+                                  navigate(`/invoices/${inv.id}/edit`);
+                                  setOpenActionId(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+                              >
+                                <Edit3 className="h-3.5 w-3.5 text-amber-500" />
+                                <span>Edit Invoice</span>
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  handleDuplicate(inv);
+                                  setOpenActionId(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+                              >
+                                <Copy className="h-3.5 w-3.5 text-blue-500" />
+                                <span>Duplicate</span>
+                              </button>
+
+                              {inv.status !== 'PAID' && (
+                                <button
+                                  onClick={() => {
+                                    handleStatusChange(inv, 'PAID');
+                                    setOpenActionId(null);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition cursor-pointer"
+                                >
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-purple-500" />
+                                  <span>Mark as Paid</span>
+                                </button>
+                              )}
+
+                              <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
+
+                              <button
+                                onClick={() => {
+                                  setDeletingInvoice(inv);
+                                  setOpenActionId(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>Delete Invoice</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>

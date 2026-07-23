@@ -115,7 +115,7 @@ export const PaymentDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-16">
+    <div className="max-w-4xl mx-auto space-y-6 pb-16 print:pb-0 print:space-y-2 print:max-w-none">
       {/* Top Bar Actions */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
         <button
@@ -183,15 +183,15 @@ export const PaymentDetailsPage: React.FC = () => {
       </div>
 
       {/* Payment Receipt Master Card */}
-      <div className="p-8 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#121118] shadow-xl space-y-8 print:shadow-none print:border-none">
+      <div className="printable-document p-8 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#121118] shadow-xl space-y-6 print:p-0 print:space-y-4 print:shadow-none print:border-none print:bg-white print:rounded-none">
         {/* Receipt Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-gray-200/80 dark:border-white/10 pb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-gray-200/80 dark:border-white/10 pb-6 print:pb-3 print:gap-2">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-heading">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-heading print:text-xl">
                 PAYMENT RECEIPT
               </h1>
-              <span className="font-mono text-sm px-3 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-semibold">
+              <span className="font-mono text-sm px-3 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-semibold print:text-xs">
                 {payment.paymentNumber}
               </span>
             </div>
@@ -201,7 +201,7 @@ export const PaymentDetailsPage: React.FC = () => {
           </div>
 
           <div className="text-right">
-            <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+            <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono print:text-2xl">
               {currencySymbol}
               {Number(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </div>
@@ -212,14 +212,14 @@ export const PaymentDetailsPage: React.FC = () => {
         </div>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-3 print:break-inside-avoid">
           {/* Payment Information */}
-          <div className="p-5 rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] space-y-3">
+          <div className="p-5 rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] space-y-3 print:p-3 print:bg-gray-50/50 print:border-gray-300">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               Payment Information
             </h3>
 
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm print:space-y-1 print:text-xs">
               <div className="flex justify-between">
                 <span className="text-gray-500">Payment Date:</span>
                 <span className="font-semibold text-gray-900 dark:text-white">
@@ -255,12 +255,12 @@ export const PaymentDetailsPage: React.FC = () => {
           </div>
 
           {/* Linked Client & Workspace Info */}
-          <div className="p-5 rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] space-y-3">
+          <div className="p-5 rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] space-y-3 print:p-3 print:bg-gray-50/50 print:border-gray-300">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               Client &amp; Organization
             </h3>
 
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm print:space-y-1 print:text-xs">
               <div className="flex justify-between">
                 <span className="text-gray-500">Client Name:</span>
                 <span className="font-semibold text-gray-900 dark:text-white">
@@ -298,32 +298,32 @@ export const PaymentDetailsPage: React.FC = () => {
 
         {/* Linked Invoice Summary Card */}
         {payment.invoice && (
-          <div className="p-6 rounded-xl border border-blue-500/20 bg-blue-500/5 space-y-4">
+          <div className="p-6 rounded-xl border border-blue-500/20 bg-blue-500/5 space-y-4 print:p-3 print:bg-gray-50/50 print:border-gray-300 print:space-y-2 break-inside-avoid page-break-inside-avoid">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-500" />
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                <FileText className="w-5 h-5 text-blue-500 print:w-4 print:h-4" />
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white print:text-xs">
                   Linked Invoice Summary
                 </h3>
               </div>
 
               <button
                 onClick={() => navigate(`/invoices/${payment.invoice?.id}`)}
-                className="text-xs font-semibold text-blue-500 hover:underline"
+                className="text-xs font-semibold text-blue-500 hover:underline print:hidden"
               >
                 View Full Invoice →
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-              <div className="p-3 rounded-lg bg-white dark:bg-black/30 border border-gray-200/60 dark:border-white/10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono print:gap-2 print:text-[11px]">
+              <div className="p-3 rounded-lg bg-white dark:bg-black/30 border border-gray-200/60 dark:border-white/10 print:p-2 print:border-gray-300 print:bg-white">
                 <div className="text-gray-400 text-[10px] uppercase">Invoice Number</div>
                 <div className="font-bold text-gray-900 dark:text-white mt-0.5">
                   {payment.invoice.invoiceNumber}
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-white dark:bg-black/30 border border-gray-200/60 dark:border-white/10">
+              <div className="p-3 rounded-lg bg-white dark:bg-black/30 border border-gray-200/60 dark:border-white/10 print:p-2 print:border-gray-300 print:bg-white">
                 <div className="text-gray-400 text-[10px] uppercase">Invoice Total</div>
                 <div className="font-bold text-gray-900 dark:text-white mt-0.5">
                   {currencySymbol}
@@ -331,7 +331,7 @@ export const PaymentDetailsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-white dark:bg-black/30 border border-gray-200/60 dark:border-white/10">
+              <div className="p-3 rounded-lg bg-white dark:bg-black/30 border border-gray-200/60 dark:border-white/10 print:p-2 print:border-gray-300 print:bg-white">
                 <div className="text-gray-400 text-[10px] uppercase">Total Amount Paid</div>
                 <div className="font-bold text-emerald-500 mt-0.5">
                   {currencySymbol}
@@ -339,7 +339,7 @@ export const PaymentDetailsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-white dark:bg-black/30 border border-gray-200/60 dark:border-white/10">
+              <div className="p-3 rounded-lg bg-white dark:bg-black/30 border border-gray-200/60 dark:border-white/10 print:p-2 print:border-gray-300 print:bg-white">
                 <div className="text-gray-400 text-[10px] uppercase">Remaining Balance</div>
                 <div className="font-bold text-rose-500 mt-0.5">
                   {currencySymbol}
@@ -352,16 +352,16 @@ export const PaymentDetailsPage: React.FC = () => {
 
         {/* Notes / Remarks */}
         {payment.notes && (
-          <div className="p-4 rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] space-y-1">
+          <div className="p-4 rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] space-y-1 print:p-2 print:bg-gray-50/50 print:border-gray-300 break-inside-avoid page-break-inside-avoid">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               Internal Notes &amp; Remarks
             </div>
-            <p className="text-sm text-gray-700 dark:text-gray-300 italic">{payment.notes}</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 italic print:text-xs">{payment.notes}</p>
           </div>
         )}
 
         {/* Footer Voucher Stamp */}
-        <div className="border-t border-gray-200/80 dark:border-white/10 pt-4 flex justify-between items-center text-xs text-gray-400">
+        <div className="border-t border-gray-200/80 dark:border-white/10 pt-4 flex justify-between items-center text-xs text-gray-400 print:pt-2 print:border-gray-300 print:text-[10px]">
           <div>Verified Payment Transaction Document</div>
           <div>Generated by Ledgerly SaaS</div>
         </div>

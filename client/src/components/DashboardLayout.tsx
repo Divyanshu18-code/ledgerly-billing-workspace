@@ -228,7 +228,7 @@ export const DashboardLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-[#09090b] text-gray-900 dark:text-white transition-colors duration-200">
       {/* Desktop Sidebar (Collapsible) */}
-      <aside className={`hidden md:block flex-shrink-0 h-screen sticky top-0 transition-all duration-300 z-30 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+      <aside className={`print:hidden hidden md:block flex-shrink-0 h-screen sticky top-0 transition-all duration-300 z-30 ${isCollapsed ? 'w-20' : 'w-64'}`}>
         {renderSidebarContent()}
       </aside>
 
@@ -236,7 +236,7 @@ export const DashboardLayout: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-gray-50 dark:bg-[#09090b]">
         
         {/* Top Navbar */}
-        <header className="flex items-center justify-between px-6 py-4 bg-[#fcfcfd]/80 dark:bg-[#0d0c11]/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5 relative z-25">
+        <header className="print:hidden flex items-center justify-between px-6 py-4 bg-[#fcfcfd]/80 dark:bg-[#0d0c11]/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5 relative z-25">
           <div className="flex items-center gap-4">
             {/* Sidebar toggle button (Desktop) */}
             <button
@@ -397,8 +397,8 @@ export const DashboardLayout: React.FC = () => {
         </header>
 
         {/* Content Panel Area */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-[1240px] px-5 mx-auto w-full">
+        <main className="flex-1 overflow-y-auto p-6 print:p-0 print:overflow-visible">
+          <div className="max-w-[1240px] px-5 mx-auto w-full print:max-w-none print:px-0 print:mx-0">
             <Outlet />
           </div>
         </main>
@@ -406,7 +406,7 @@ export const DashboardLayout: React.FC = () => {
 
       {/* Mobile Drawer */}
       {isMobileOpen && (
-        <div className="md:hidden fixed inset-0 z-45 flex">
+        <div className="print:hidden md:hidden fixed inset-0 z-45 flex">
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={toggleMobile} />
           <aside className="relative w-64 h-full flex-shrink-0 z-50">
             {renderSidebarContent()}

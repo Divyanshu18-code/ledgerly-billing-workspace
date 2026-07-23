@@ -107,9 +107,9 @@ export const QuotationDetailsPage: React.FC = () => {
   };
 
   return (
-    <div className="relative space-y-6 max-w-5xl mx-auto pb-16">
+    <div className="relative space-y-6 max-w-5xl mx-auto pb-16 print:pb-0 print:space-y-2 print:max-w-none">
       {/* Background ambient light */}
-      <div className="absolute top-[-5%] left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-blue-600/10 dark:bg-blue-500/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute top-[-5%] left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-blue-600/10 dark:bg-blue-500/10 rounded-full blur-[160px] pointer-events-none print:hidden" />
 
       {/* Header Bar - Single Line Sleek Button Bar */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-gray-200/60 dark:border-white/10 print:hidden relative z-10">
@@ -200,7 +200,7 @@ export const QuotationDetailsPage: React.FC = () => {
 
       {feedbackMsg && (
         <div
-          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between border shadow-sm ${
+          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between border shadow-sm print:hidden ${
             feedbackMsg.type === 'success'
               ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
               : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400'
@@ -210,8 +210,8 @@ export const QuotationDetailsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Unified Master Luxury Card (Combines Workflow Bar & Proposal Sheet into ONE unified experience) */}
-      <div className="rounded-[28px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#13111c]/80 backdrop-blur-2xl shadow-xl overflow-hidden relative z-10 print:shadow-none print:border-none print:p-0">
+      {/* Unified Master Luxury Card */}
+      <div className="printable-document rounded-[28px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#13111c]/80 backdrop-blur-2xl shadow-xl overflow-hidden relative z-10 print:shadow-none print:border-none print:p-0">
         
         {/* Integrated Status Workflow Header Bar inside the Card */}
         <div className="p-4 sm:p-5 bg-gray-50/80 dark:bg-[#181624]/90 border-b border-gray-200/60 dark:border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs print:hidden">
@@ -245,87 +245,91 @@ export const QuotationDetailsPage: React.FC = () => {
         </div>
 
         {/* Printable Proposal Document Body */}
-        <div className="p-6 sm:p-10 space-y-8">
+        <div className="p-6 sm:p-10 space-y-8 print:p-0 print:space-y-3">
           {/* Company Branding & Proposal Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-gray-100 dark:border-white/10 pb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-gray-100 dark:border-white/10 pb-6 print:pb-3 print:gap-2">
             <div className="space-y-1">
-              <h2 className="text-2xl font-black font-heading tracking-wider text-gray-900 dark:text-white uppercase">
+              <h2 className="text-2xl font-black font-heading tracking-wider text-gray-900 dark:text-white uppercase print:text-2xl">
                 {workspace?.name || 'Ledgerly SaaS'}
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Rate Estimation Proposal</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium print:text-xs">Rate Estimation Proposal</p>
             </div>
 
             <div className="text-left sm:text-right space-y-1">
-              <div className="text-lg font-mono font-extrabold text-blue-600 dark:text-blue-400">
+              <div className="text-lg font-mono font-extrabold text-blue-600 dark:text-blue-400 print:text-lg">
                 {quotation.quotationNumber}
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-xs text-gray-500 dark:text-gray-400 print:text-xs">
                 Date: <span className="font-semibold text-gray-800 dark:text-gray-200">{new Date(quotation.issueDate).toLocaleDateString()}</span>
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-xs text-gray-500 dark:text-gray-400 print:text-xs">
                 Valid Until: <span className="font-semibold text-gray-800 dark:text-gray-200">{new Date(quotation.validUntil).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
 
           {/* Prepared For & Issuer Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="p-5 rounded-2xl bg-gray-50/70 dark:bg-[#181624]/60 border border-gray-200/60 dark:border-white/10 space-y-1">
-              <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">PREPARED FOR</div>
-              <div className="text-sm font-bold text-gray-900 dark:text-white">{quotation.client.name}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 print:gap-3 print:break-inside-avoid">
+            <div className="p-5 rounded-2xl bg-gray-50/70 dark:bg-[#181624]/60 border border-gray-200/60 dark:border-white/10 space-y-1 print:p-3.5 print:bg-slate-50/80 print:border-slate-300 print:rounded-xl">
+              <div className="text-[10px] font-black uppercase tracking-wider text-gray-400 print:text-[10px] print:text-slate-500">PREPARED FOR</div>
+              <div className="text-sm font-bold text-gray-900 dark:text-white print:text-sm">{quotation.client.name}</div>
               {quotation.client.companyName && (
-                <div className="text-xs text-gray-500 dark:text-gray-400">{quotation.client.companyName}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 print:text-xs">{quotation.client.companyName}</div>
               )}
               {quotation.client.email && (
-                <div className="text-xs font-mono text-gray-500 dark:text-gray-400">{quotation.client.email}</div>
+                <div className="text-xs font-mono text-gray-500 dark:text-gray-400 print:text-xs">{quotation.client.email}</div>
               )}
               {quotation.client.phone && (
-                <div className="text-xs font-mono text-gray-500 dark:text-gray-400">{quotation.client.phone}</div>
+                <div className="text-xs font-mono text-gray-500 dark:text-gray-400 print:text-xs">{quotation.client.phone}</div>
               )}
             </div>
 
-            <div className="p-5 rounded-2xl bg-gray-50/70 dark:bg-[#181624]/60 border border-gray-200/60 dark:border-white/10 space-y-1">
-              <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">ISSUER DETAILS</div>
-              <div className="text-sm font-bold text-gray-900 dark:text-white">{workspace?.name || 'Ledgerly CRM'}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Currency: {quotation.currency}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Status: {quotation.status}</div>
+            <div className="p-5 rounded-2xl bg-gray-50/70 dark:bg-[#181624]/60 border border-gray-200/60 dark:border-white/10 space-y-1 print:p-3.5 print:bg-slate-50/80 print:border-slate-300 print:rounded-xl">
+              <div className="text-[10px] font-black uppercase tracking-wider text-gray-400 print:text-[10px] print:text-slate-500">ISSUER DETAILS</div>
+              <div className="text-sm font-bold text-gray-900 dark:text-white print:text-sm">{workspace?.name || 'Ledgerly CRM'}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 print:text-xs">Currency: {quotation.currency}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 print:text-xs">Status: {quotation.status}</div>
             </div>
           </div>
 
-          {/* Itemized Table */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Itemized Proposal Breakdown</h3>
+          {/* Itemized Table with Serial Number # Column */}
+          <div className="space-y-3 print:space-y-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 print:text-xs print:text-slate-500">Itemized Proposal Breakdown</h3>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left text-xs border-collapse print:text-xs">
                 <thead>
                   <tr className="border-b border-gray-200/60 dark:border-white/10 text-gray-400 uppercase tracking-wider font-bold">
-                    <th className="py-3 px-3">Item & Description</th>
-                    <th className="py-3 px-3 text-center">Qty</th>
-                    <th className="py-3 px-3 text-center">Unit Price</th>
-                    <th className="py-3 px-3 text-center">Discount</th>
-                    <th className="py-3 px-3 text-center">Tax</th>
-                    <th className="py-3 px-3 text-right">Total</th>
+                    <th className="py-3 px-3 text-center print:py-2 print:px-2 w-12">#</th>
+                    <th className="py-3 px-3 print:py-2 print:px-2">Item &amp; Description</th>
+                    <th className="py-3 px-3 text-center print:py-2 print:px-2">Qty</th>
+                    <th className="py-3 px-3 text-center print:py-2 print:px-2">Unit Price</th>
+                    <th className="py-3 px-3 text-center print:py-2 print:px-2">Discount</th>
+                    <th className="py-3 px-3 text-center print:py-2 print:px-2">Tax</th>
+                    <th className="py-3 px-3 text-right print:py-2 print:px-2">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                  {quotation.items.map((it: any) => (
-                    <tr key={it.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02]">
-                      <td className="py-3 px-3 font-semibold text-gray-900 dark:text-white">
+                  {quotation.items.map((it: any, index: number) => (
+                    <tr key={it.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] print:break-inside-avoid">
+                      <td className="py-3 px-3 text-center font-mono font-bold text-gray-400 print:py-2 print:px-2 print:text-slate-600">
+                        {index + 1}
+                      </td>
+                      <td className="py-3 px-3 font-semibold text-gray-900 dark:text-white print:py-2 print:px-2">
                         {it.product?.name || it.description || 'Custom Service Line'}
                       </td>
-                      <td className="py-3 px-3 text-center font-mono font-bold text-gray-700 dark:text-gray-300">
+                      <td className="py-3 px-3 text-center font-mono font-bold text-gray-700 dark:text-gray-300 print:py-2 print:px-2">
                         {it.quantity}
                       </td>
-                      <td className="py-3 px-3 text-center font-mono text-gray-700 dark:text-gray-300">
+                      <td className="py-3 px-3 text-center font-mono text-gray-700 dark:text-gray-300 print:py-2 print:px-2">
                         {currencySymbol}{Number(it.unitPrice).toFixed(2)}
                       </td>
-                      <td className="py-3 px-3 text-center font-mono text-rose-500 font-bold">
+                      <td className="py-3 px-3 text-center font-mono text-rose-500 font-bold print:py-2 print:px-2">
                         -{currencySymbol}{Number(it.discountAmount).toFixed(2)}
                       </td>
-                      <td className="py-3 px-3 text-center font-mono text-gray-500">
+                      <td className="py-3 px-3 text-center font-mono text-gray-500 print:py-2 print:px-2">
                         {it.taxRateValue}%
                       </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-gray-900 dark:text-white">
+                      <td className="py-3 px-3 text-right font-mono font-bold text-gray-900 dark:text-white print:py-2 print:px-2">
                         {currencySymbol}{Number(it.totalAmount).toFixed(2)}
                       </td>
                     </tr>
@@ -336,8 +340,8 @@ export const QuotationDetailsPage: React.FC = () => {
           </div>
 
           {/* Totals Breakdown */}
-          <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-white/10">
-            <div className="w-full sm:w-72 space-y-2 text-xs">
+          <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-white/10 print:pt-2 print:border-none break-inside-avoid page-break-inside-avoid">
+            <div className="w-full sm:w-80 p-4 rounded-2xl border border-gray-200/80 dark:border-white/10 bg-gray-50/60 dark:bg-white/[0.02] space-y-2 text-xs print:p-3 print:bg-slate-50/80 print:border-slate-300 print:rounded-xl print:space-y-1.5 print:text-xs">
               <div className="flex justify-between text-gray-500 dark:text-gray-400">
                 <span>Subtotal:</span>
                 <span className="font-mono font-bold text-gray-900 dark:text-white">
@@ -356,9 +360,9 @@ export const QuotationDetailsPage: React.FC = () => {
                   +{currencySymbol}{Number(quotation.taxTotal).toFixed(2)}
                 </span>
               </div>
-              <div className="flex justify-between text-sm font-extrabold pt-3 border-t border-gray-200 dark:border-white/10 text-gray-900 dark:text-white">
+              <div className="flex justify-between text-sm font-extrabold pt-3 border-t border-gray-200 dark:border-white/10 text-gray-900 dark:text-white print:pt-2 print:border-slate-300">
                 <span>Grand Total:</span>
-                <span className="font-mono text-base text-blue-600 dark:text-blue-400">
+                <span className="font-mono text-base text-blue-600 dark:text-blue-400 print:text-sm">
                   {currencySymbol}{Number(quotation.grandTotal).toFixed(2)}
                 </span>
               </div>
@@ -367,9 +371,9 @@ export const QuotationDetailsPage: React.FC = () => {
 
           {/* Terms & Notes Footer */}
           {quotation.terms && (
-            <div className="pt-6 border-t border-gray-100 dark:border-white/10 space-y-1">
-              <h4 className="text-[10px] font-black uppercase tracking-wider text-gray-400">TERMS & CONDITIONS</h4>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{quotation.terms}</p>
+            <div className="pt-6 border-t border-gray-100 dark:border-white/10 space-y-1 print:pt-2 print:border-gray-200 break-inside-avoid page-break-inside-avoid">
+              <h4 className="text-[10px] font-black uppercase tracking-wider text-gray-400 print:text-[10px] print:text-slate-500">TERMS &amp; CONDITIONS</h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400 print:text-xs">{quotation.terms}</p>
             </div>
           )}
         </div>
