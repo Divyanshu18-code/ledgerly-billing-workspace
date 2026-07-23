@@ -42,6 +42,7 @@ import workspaceRoutes from './modules/workspace/workspace.routes';
 import quotationRoutes from './modules/quotations/quotations.routes';
 import invoiceRoutes from './modules/invoices/invoices.routes';
 import paymentsRoutes from './modules/payments/payments.routes';
+import expensesRoutes from './modules/expenses/expenses.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 const app = express();
@@ -67,6 +68,7 @@ app.use('/api/v1/workspaces', workspaceRoutes);
 app.use('/api/v1/quotations', quotationRoutes);
 app.use('/api/v1/invoices', invoiceRoutes);
 app.use('/api/v1/payments', paymentsRoutes);
+app.use('/api/v1/expenses', expensesRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({

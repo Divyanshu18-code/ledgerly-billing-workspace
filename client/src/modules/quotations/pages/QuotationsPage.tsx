@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   useQuotationsQuery,
@@ -44,6 +44,31 @@ export const QuotationsPage: React.FC = () => {
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [deletingQuotation, setDeletingQuotation] = useState<Quotation | null>(null);
   const [openActionId, setOpenActionId] = useState<string | null>(null);
+
+  // Auto-close 3-dots action dropdown menu on click outside or window scroll
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+        setOpenActionId(null);
+      }
+    };
+    const handleScroll = () => {
+      if (openActionId) {
+        setOpenActionId(null);
+      }
+    };
+
+    if (openActionId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', handleScroll, true);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [openActionId]);
 
   // Query Hook
   const { data: responseData, isLoading, refetch } = useQuotationsQuery({
@@ -337,53 +362,60 @@ export const QuotationsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-gray-700 dark:text-gray-200">
-                {quotations.map((q) => (
-                  <tr key={q.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition">
-                    <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
-                      {q.quotationNumber}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="font-bold text-gray-900 dark:text-white font-heading">{q.client.name}</div>
-                      <div className="text-[11px] text-gray-400">{q.client.companyName || q.client.email}</div>
-                    </td>
-                    <td className="py-3.5 px-4 text-[11px]">
-                      <div className="font-medium">{new Date(q.issueDate).toLocaleDateString()}</div>
-                      <div className="text-gray-400">Expires: {new Date(q.validUntil).toLocaleDateString()}</div>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 text-xxs font-extrabold rounded-full border uppercase tracking-wider ${getStatusBadgeClass(
-                          q.status
-                        )}`}
-                      >
-                        {q.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-mono font-bold text-gray-900 dark:text-white text-sm">
-                      {currencySymbol}
-                      {Number(q.grandTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="py-3.5 px-4 text-right relative" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => navigate(`/quotations/${q.id}`)}
-                          className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
-                          title="View Proposal Details"
+                {quotations.map((q, idx) => {
+                  const isLastRow = idx >= quotations.length - 2 && quotations.length > 2;
+                  return (
+                    <tr key={q.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition">
+                      <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                        {q.quotationNumber}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold text-gray-900 dark:text-white font-heading">{q.client.name}</div>
+                        <div className="text-[11px] text-gray-400">{q.client.companyName || q.client.email}</div>
+                      </td>
+                      <td className="py-3.5 px-4 text-[11px]">
+                        <div className="font-medium">{new Date(q.issueDate).toLocaleDateString()}</div>
+                        <div className="text-gray-400">Expires: {new Date(q.validUntil).toLocaleDateString()}</div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 text-xxs font-extrabold rounded-full border uppercase tracking-wider ${getStatusBadgeClass(
+                            q.status
+                          )}`}
                         >
-                          <Eye className="h-4 w-4" />
-                        </button>
-
-                        <div className="relative">
+                          {q.status}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-mono font-bold text-gray-900 dark:text-white text-sm">
+                        {currencySymbol}
+                        {Number(q.grandTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-3.5 px-4 text-right relative" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
-                            onClick={() => setOpenActionId(openActionId === q.id ? null : q.id)}
+                            onClick={() => navigate(`/quotations/${q.id}`)}
                             className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
-                            title="More actions"
+                            title="View Proposal Details"
                           >
-                            <MoreVertical className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </button>
 
-                          {openActionId === q.id && (
-                            <div className="absolute right-0 top-[110%] z-50 w-48 p-1.5 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-0.5 backdrop-blur-xl text-left">
+                          <div className="relative">
+                            <button
+                              onClick={() => setOpenActionId(openActionId === q.id ? null : q.id)}
+                              className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
+                              title="More actions"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
+
+                            {openActionId === q.id && (
+                              <div
+                                ref={actionMenuRef}
+                                className={`absolute right-0 z-50 w-48 p-1.5 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-0.5 backdrop-blur-xl text-left ${
+                                  isLastRow ? 'bottom-[110%] mb-1' : 'top-[110%]'
+                                }`}
+                              >
                               <button
                                 onClick={() => {
                                   navigate(`/quotations/${q.id}/edit`);
@@ -437,7 +469,8 @@ export const QuotationsPage: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -35,6 +35,31 @@ export const PaymentsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [methodFilter, setMethodFilter] = useState<string>('');
   const [openActionId, setOpenActionId] = useState<string | null>(null);
+
+  // Auto-close 3-dots action dropdown menu on click outside or window scroll
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+        setOpenActionId(null);
+      }
+    };
+    const handleScroll = () => {
+      if (openActionId) {
+        setOpenActionId(null);
+      }
+    };
+
+    if (openActionId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', handleScroll, true);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [openActionId]);
 
   const { data: response, isLoading, refetch } = usePaymentsQuery({
     page,
@@ -324,86 +349,93 @@ export const PaymentsPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                payments.map((payment: PaymentItem) => (
-                  <tr
-                    key={payment.id}
-                    className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors"
-                  >
-                    <td className="py-3.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400">
-                      <button
-                        onClick={() => navigate(`/payments/${payment.id}`)}
-                        className="hover:underline"
-                      >
-                        {payment.paymentNumber}
-                      </button>
-                    </td>
-
-                    <td className="py-3.5 px-4 font-mono text-gray-700 dark:text-gray-300">
-                      {payment.invoice ? (
-                        <button
-                          onClick={() => navigate(`/invoices/${payment.invoice?.id}`)}
-                          className="hover:underline text-blue-500"
-                        >
-                          {payment.invoice.invoiceNumber}
-                        </button>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-
-                    <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-white">
-                      {payment.client?.name || '—'}
-                    </td>
-
-                    <td className="py-3.5 px-4 text-gray-500 dark:text-gray-400 text-xs">
-                      {new Date(payment.paymentDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </td>
-
-                    <td className="py-3.5 px-4">{getMethodBadge(payment.paymentMethod)}</td>
-
-                    <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-white">
-                      {currencySymbol}
-                      {Number(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-
-                    <td className="py-3.5 px-4">{getStatusBadge(payment.status)}</td>
-
-                    <td className="py-3.5 px-4 text-center relative" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-center gap-1.5">
-                        {/* Quick WhatsApp Action */}
-                        <button
-                          onClick={() => handleWhatsApp(payment)}
-                          className="p-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 transition cursor-pointer active:scale-95"
-                          title="Share via WhatsApp"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                        </button>
-
-                        {/* Quick View Details */}
+                payments.map((payment: PaymentItem, idx: number) => {
+                  const isLastRow = idx >= payments.length - 2 && payments.length > 2;
+                  return (
+                    <tr
+                      key={payment.id}
+                      className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                    >
+                      <td className="py-3.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400">
                         <button
                           onClick={() => navigate(`/payments/${payment.id}`)}
-                          className="p-1.5 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
-                          title="View Payment Details"
+                          className="hover:underline"
                         >
-                          <Eye className="w-4 h-4" />
+                          {payment.paymentNumber}
                         </button>
+                      </td>
 
-                        {/* Sleek 3-Dots Dropdown Menu */}
-                        <div className="relative">
+                      <td className="py-3.5 px-4 font-mono text-gray-700 dark:text-gray-300">
+                        {payment.invoice ? (
                           <button
-                            onClick={() => setOpenActionId(openActionId === payment.id ? null : payment.id)}
-                            className="p-1.5 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
-                            title="More actions"
+                            onClick={() => navigate(`/invoices/${payment.invoice?.id}`)}
+                            className="hover:underline text-blue-500"
                           >
-                            <MoreVertical className="w-4 h-4" />
+                            {payment.invoice.invoiceNumber}
+                          </button>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+
+                      <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-white">
+                        {payment.client?.name || '—'}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-gray-500 dark:text-gray-400 text-xs">
+                        {new Date(payment.paymentDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </td>
+
+                      <td className="py-3.5 px-4">{getMethodBadge(payment.paymentMethod)}</td>
+
+                      <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-white">
+                        {currencySymbol}
+                        {Number(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </td>
+
+                      <td className="py-3.5 px-4">{getStatusBadge(payment.status)}</td>
+
+                      <td className="py-3.5 px-4 text-center relative" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-1.5">
+                          {/* Quick WhatsApp Action */}
+                          <button
+                            onClick={() => handleWhatsApp(payment)}
+                            className="p-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 transition cursor-pointer active:scale-95"
+                            title="Share via WhatsApp"
+                          >
+                            <MessageCircle className="w-4 h-4" />
                           </button>
 
-                          {openActionId === payment.id && (
-                            <div className="absolute right-0 top-[110%] z-50 w-44 p-1.5 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-0.5 backdrop-blur-xl text-left">
+                          {/* Quick View Details */}
+                          <button
+                            onClick={() => navigate(`/payments/${payment.id}`)}
+                            className="p-1.5 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
+                            title="View Payment Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          {/* Sleek 3-Dots Dropdown Menu */}
+                          <div className="relative">
+                            <button
+                              onClick={() => setOpenActionId(openActionId === payment.id ? null : payment.id)}
+                              className="p-1.5 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
+                              title="More actions"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+
+                            {openActionId === payment.id && (
+                              <div
+                                ref={actionMenuRef}
+                                className={`absolute right-0 z-50 w-44 p-1.5 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-0.5 backdrop-blur-xl text-left ${
+                                  isLastRow ? 'bottom-[110%] mb-1' : 'top-[110%]'
+                                }`}
+                              >
                               <button
                                 onClick={() => {
                                   navigate(`/payments/${payment.id}/edit`);
@@ -433,7 +465,8 @@ export const PaymentsPage: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+              })
               )}
             </tbody>
           </table>

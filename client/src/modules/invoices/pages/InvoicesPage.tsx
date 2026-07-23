@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   useInvoicesQuery,
@@ -50,6 +50,31 @@ export const InvoicesPage: React.FC = () => {
   const [deletingInvoice, setDeletingInvoice] = useState<Invoice | null>(null);
   const [openActionId, setOpenActionId] = useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Auto-close 3-dots action dropdown menu on click outside or window scroll
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+        setOpenActionId(null);
+      }
+    };
+    const handleScroll = () => {
+      if (openActionId) {
+        setOpenActionId(null);
+      }
+    };
+
+    if (openActionId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', handleScroll, true);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [openActionId]);
 
   // Debounce search input
   useEffect(() => {
@@ -342,79 +367,86 @@ export const InvoicesPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                {invoices.map((inv: Invoice) => (
-                  <tr
-                    key={inv.id}
-                    className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer"
-                    onClick={() => navigate(`/invoices/${inv.id}`)}
-                  >
-                    <td className="py-4 px-6 font-mono font-extrabold text-blue-600 dark:text-blue-400">
-                      {inv.invoiceNumber}
-                    </td>
+                {invoices.map((inv: Invoice, idx: number) => {
+                  const isLastRow = idx >= invoices.length - 2 && invoices.length > 2;
+                  return (
+                    <tr
+                      key={inv.id}
+                      className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                      onClick={() => navigate(`/invoices/${inv.id}`)}
+                    >
+                      <td className="py-4 px-6 font-mono font-extrabold text-blue-600 dark:text-blue-400">
+                        {inv.invoiceNumber}
+                      </td>
 
-                    <td className="py-4 px-6">
-                      <div className="font-bold text-gray-900 dark:text-white">{inv.client.name}</div>
-                      {inv.client.companyName && (
-                        <div className="text-[11px] text-gray-400 font-normal">{inv.client.companyName}</div>
-                      )}
-                    </td>
+                      <td className="py-4 px-6">
+                        <div className="font-bold text-gray-900 dark:text-white">{inv.client.name}</div>
+                        {inv.client.companyName && (
+                          <div className="text-[11px] text-gray-400 font-normal">{inv.client.companyName}</div>
+                        )}
+                      </td>
 
-                    <td className="py-4 px-6 text-gray-500 dark:text-gray-400 font-medium">
-                      {new Date(inv.issueDate).toLocaleDateString()}
-                    </td>
+                      <td className="py-4 px-6 text-gray-500 dark:text-gray-400 font-medium">
+                        {new Date(inv.issueDate).toLocaleDateString()}
+                      </td>
 
-                    <td className="py-4 px-6 text-gray-500 dark:text-gray-400 font-medium">
-                      {new Date(inv.dueDate).toLocaleDateString()}
-                    </td>
+                      <td className="py-4 px-6 text-gray-500 dark:text-gray-400 font-medium">
+                        {new Date(inv.dueDate).toLocaleDateString()}
+                      </td>
 
-                    <td className="py-4 px-6">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 text-[10px] font-extrabold rounded-full border uppercase tracking-wider ${getStatusBadgeClass(inv.status)}`}>
-                        {inv.status}
-                      </span>
-                    </td>
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 text-[10px] font-extrabold rounded-full border uppercase tracking-wider ${getStatusBadgeClass(inv.status)}`}>
+                          {inv.status}
+                        </span>
+                      </td>
 
-                    <td className="py-4 px-6 text-right font-mono font-extrabold text-gray-900 dark:text-white text-sm">
-                      {currencySymbol}
-                      {Number(inv.grandTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
+                      <td className="py-4 px-6 text-right font-mono font-extrabold text-gray-900 dark:text-white text-sm">
+                        {currencySymbol}
+                        {Number(inv.grandTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </td>
 
-                    <td className="py-4 px-6 text-right font-mono font-bold text-amber-500">
-                      {currencySymbol}
-                      {Number(inv.balanceDue).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
+                      <td className="py-4 px-6 text-right font-mono font-bold text-amber-500">
+                        {currencySymbol}
+                        {Number(inv.balanceDue).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </td>
 
-                    <td className="py-3 px-6 text-right relative" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-1.5">
-                        {/* Quick WhatsApp Action */}
-                        <button
-                          onClick={() => handleWhatsAppInvoice(inv)}
-                          className="p-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 transition cursor-pointer active:scale-95"
-                          title="Share Invoice via WhatsApp"
-                        >
-                          <MessageCircle className="h-4 w-4" />
-                        </button>
-
-                        {/* Quick View Details */}
-                        <button
-                          onClick={() => navigate(`/invoices/${inv.id}`)}
-                          className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
-                          title="View Details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-
-                        {/* Sleek 3-Dots Dropdown Menu */}
-                        <div className="relative">
+                      <td className="py-3 px-6 text-right relative" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* Quick WhatsApp Action */}
                           <button
-                            onClick={() => setOpenActionId(openActionId === inv.id ? null : inv.id)}
-                            className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
-                            title="More actions"
+                            onClick={() => handleWhatsAppInvoice(inv)}
+                            className="p-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 transition cursor-pointer active:scale-95"
+                            title="Share Invoice via WhatsApp"
                           >
-                            <MoreVertical className="h-4 w-4" />
+                            <MessageCircle className="h-4 w-4" />
                           </button>
 
-                          {openActionId === inv.id && (
-                            <div className="absolute right-0 top-[110%] z-50 w-48 p-1.5 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-0.5 backdrop-blur-xl text-left">
+                          {/* Quick View Details */}
+                          <button
+                            onClick={() => navigate(`/invoices/${inv.id}`)}
+                            className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+
+                          {/* Sleek 3-Dots Dropdown Menu */}
+                          <div className="relative">
+                            <button
+                              onClick={() => setOpenActionId(openActionId === inv.id ? null : inv.id)}
+                              className="p-2 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-[#181624] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition cursor-pointer active:scale-95"
+                              title="More actions"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
+
+                            {openActionId === inv.id && (
+                              <div
+                                ref={actionMenuRef}
+                                className={`absolute right-0 z-50 w-48 p-1.5 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white dark:bg-[#181624] shadow-2xl space-y-0.5 backdrop-blur-xl text-left ${
+                                  isLastRow ? 'bottom-[110%] mb-1' : 'top-[110%]'
+                                }`}
+                              >
                               <button
                                 onClick={() => {
                                   navigate(`/invoices/${inv.id}/edit`);
@@ -468,7 +500,8 @@ export const InvoicesPage: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>

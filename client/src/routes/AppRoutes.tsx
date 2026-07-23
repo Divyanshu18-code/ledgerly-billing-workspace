@@ -24,10 +24,13 @@ import { PaymentsPage } from '@/modules/payments/pages/PaymentsPage';
 import { RecordPaymentPage } from '@/modules/payments/pages/RecordPaymentPage';
 import { EditPaymentPage } from '@/modules/payments/pages/EditPaymentPage';
 import { PaymentDetailsPage } from '@/modules/payments/pages/PaymentDetailsPage';
+import { ExpensesPage } from '@/modules/expenses/pages/ExpensesPage';
+import { CreateExpensePage } from '@/modules/expenses/pages/CreateExpensePage';
+import { ExpenseDetailsPage } from '@/modules/expenses/pages/ExpenseDetailsPage';
+import { EditExpensePage } from '@/modules/expenses/pages/EditExpensePage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ComingSoon } from '@/components/ComingSoon';
 import {
-  TrendingDown,
   BarChart3,
   Bell,
   Bot,
@@ -94,17 +97,10 @@ export const AppRoutes: React.FC = () => {
             <Route path="/payments/new" element={<RecordPaymentPage />} />
             <Route path="/payments/:id" element={<PaymentDetailsPage />} />
             <Route path="/payments/:id/edit" element={<EditPaymentPage />} />
-            <Route
-              path="/expenses"
-              element={
-                <ComingSoon
-                  icon={TrendingDown}
-                  title="Expenses Registry"
-                  description="Log company costs, upload payment receipt files, categorize expenses, and generate spending tax reports."
-                  breadcrumbs={['Main', 'Expenses']}
-                />
-              }
-            />
+            <Route path="/expenses" element={<ExpensesPage />} />
+            <Route path="/expenses/new" element={<CreateExpensePage />} />
+            <Route path="/expenses/:id" element={<ExpenseDetailsPage />} />
+            <Route path="/expenses/:id/edit" element={<EditExpensePage />} />
             <Route
               path="/reports"
               element={
