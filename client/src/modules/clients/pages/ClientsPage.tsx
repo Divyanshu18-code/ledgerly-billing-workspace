@@ -18,7 +18,6 @@ import {
   Phone,
   MapPin,
   Building,
-  Loader2,
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
@@ -26,6 +25,7 @@ import {
   AlertTriangle,
   Filter,
 } from 'lucide-react';
+import { CardGridSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate } from 'react-router-dom';
 
 export const ClientsPage: React.FC = () => {
@@ -139,7 +139,7 @@ export const ClientsPage: React.FC = () => {
       {/* Background radial glow */}
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[150px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto relative z-10 space-y-6">
+      <div className="w-full relative z-10 space-y-6">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100 dark:border-white/10">
           <div className="flex items-center gap-3.5">
@@ -221,10 +221,7 @@ export const ClientsPage: React.FC = () => {
 
         {/* Clients List Grid */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-3" />
-            <p className="text-gray-500 dark:text-gray-400 text-xs">Loading clients database...</p>
-          </div>
+          <CardGridSkeleton count={6} />
         ) : isError ? (
           <div className="p-4 rounded-lg border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-center text-xs flex items-center justify-center gap-2">
             <AlertTriangle className="h-4 w-4" />

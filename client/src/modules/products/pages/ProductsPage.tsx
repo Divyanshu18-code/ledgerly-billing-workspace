@@ -26,6 +26,7 @@ import {
   ChevronDown,
   Check,
 } from 'lucide-react';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate } from 'react-router-dom';
 
 export const ProductsPage: React.FC = () => {
@@ -401,10 +402,7 @@ export const ProductsPage: React.FC = () => {
       {/* Product List Table / Grid */}
       <div className="rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/60 dark:bg-[#121118]/60 backdrop-blur-xl overflow-hidden relative z-10 shadow-sm">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-3" />
-            <p className="text-xs font-medium">Loading catalog items...</p>
-          </div>
+          <TableSkeleton rows={6} columns={7} />
         ) : error ? (
           <div className="py-16 text-center text-red-500 dark:text-red-400 text-xs">
             Failed to load catalog items. Please refresh page.

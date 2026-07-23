@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Plus,
@@ -9,7 +10,6 @@ import {
   Edit3,
   Copy,
   Trash2,
-  Loader2,
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
@@ -306,10 +306,7 @@ export const ExpensesPage: React.FC = () => {
 
       {/* Main Expense Table */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center p-12 space-y-3 bg-white/60 dark:bg-[#121118]/60 backdrop-blur-xl rounded-2xl border border-gray-200/80 dark:border-white/10">
-          <Loader2 className="h-7 w-7 animate-spin text-blue-500" />
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Loading expense records...</p>
-        </div>
+        <TableSkeleton rows={6} columns={7} />
       ) : expenses.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center bg-white/60 dark:bg-[#121118]/60 backdrop-blur-xl rounded-2xl border border-gray-200/80 dark:border-white/10 space-y-3">
           <div className="p-3.5 rounded-2xl bg-blue-500/10 text-blue-500">

@@ -266,48 +266,65 @@ export const DistributionDonutChart: React.FC<DistributionDonutProps> = ({ distr
     return <div className="h-48 flex items-center justify-center text-xs text-gray-400">No status distribution.</div>;
   }
 
-  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+  const totalCount = distributions.reduce((sum, item) => sum + item.count, 0);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-      <div className="relative flex justify-center">
-        <svg viewBox="0 0 100 100" className="w-36 h-36 -rotate-90">
-          {distributions.map((item, idx) => {
-            const strokeDashoffset = -distributions
-              .slice(0, idx)
-              .reduce((acc, curr) => acc + (curr.percentage / 100) * 251.2, 0);
-            const strokeDasharray = `${(item.percentage / 100) * 251.2} 251.2`;
+    <div className="flex flex-col justify-between h-full space-y-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-2">
+        {/* Donut Chart with Center Total Text */}
+        <div className="relative flex items-center justify-center shrink-0">
+          <svg viewBox="0 0 100 100" className="w-40 h-40 -rotate-90">
+            {distributions.map((item, idx) => {
+              const strokeDashoffset = -distributions
+                .slice(0, idx)
+                .reduce((acc, curr) => acc + (curr.percentage / 100) * 251.2, 0);
+              const strokeDasharray = `${(item.percentage / 100) * 251.2} 251.2`;
 
-            return (
-              <circle
-                key={idx}
-                cx="50"
-                cy="50"
-                r="40"
-                fill="transparent"
-                stroke={colors[idx % colors.length]}
-                strokeWidth="12"
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={strokeDashoffset}
-                className="transition-all duration-500 hover:opacity-80"
-              />
-            );
-          })}
-        </svg>
+              return (
+                <circle
+                  key={idx}
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="transparent"
+                  stroke={colors[idx % colors.length]}
+                  strokeWidth="12"
+                  strokeDasharray={strokeDasharray}
+                  strokeDashoffset={strokeDashoffset}
+                  className="transition-all duration-500 hover:opacity-80"
+                />
+              );
+            })}
+          </svg>
+
+          {/* Inner Donut Content */}
+          <div className="absolute text-center space-y-0.5 pointer-events-none">
+            <span className="text-2xl font-black text-gray-900 dark:text-white font-heading">{totalCount}</span>
+            <p className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Invoices</p>
+          </div>
+        </div>
+
+        {/* Legend List */}
+        <div className="space-y-3.5 text-xs w-full sm:w-auto flex-1">
+          {distributions.map((item, idx) => (
+            <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-gray-50/60 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors[idx % colors.length] }} />
+                <span className="font-semibold text-gray-700 dark:text-gray-300 capitalize">{item.status.toLowerCase().replace('_', ' ')}</span>
+              </div>
+              <span className="font-mono font-bold text-gray-900 dark:text-white">
+                {item.count} <span className="text-[10px] text-gray-400 font-normal">({item.percentage}%)</span>
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-2">
-        {distributions.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors[idx % colors.length] }} />
-              <span className="font-medium text-gray-700 dark:text-gray-300">{item.status}</span>
-            </div>
-            <span className="font-mono font-bold text-gray-900 dark:text-white">
-              {item.count} ({item.percentage}%)
-            </span>
-          </div>
-        ))}
+      {/* Financial Health Summary Footer Box */}
+      <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-between text-xs">
+        <span className="font-bold text-blue-600 dark:text-blue-400">Total Tracked Invoices</span>
+        <span className="font-mono font-black text-blue-700 dark:text-blue-300">{totalCount} Invoices</span>
       </div>
     </div>
   );

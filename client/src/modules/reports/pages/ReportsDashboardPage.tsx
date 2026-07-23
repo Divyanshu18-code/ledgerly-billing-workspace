@@ -202,7 +202,7 @@ export const ReportsDashboardPage: React.FC = () => {
                   <FinancialTrendAreaChart data={dashboardData.monthlyTrend} currencySymbol={currencySymbol} />
                 </div>
 
-                <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm">
+                <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm flex flex-col justify-between">
                   <h3 className="text-base font-bold text-gray-900 dark:text-white font-heading mb-4">
                     Invoice Status Distribution
                   </h3>

@@ -398,7 +398,7 @@ export const DashboardLayout: React.FC = () => {
 
         {/* Content Panel Area */}
         <main className="flex-1 overflow-y-auto p-6 print:p-0 print:overflow-visible">
-          <div className="max-w-[1240px] px-5 mx-auto w-full print:max-w-none print:px-0 print:mx-0">
+          <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 print:max-w-none print:px-0 print:mx-0">
             <Outlet />
           </div>
         </main>

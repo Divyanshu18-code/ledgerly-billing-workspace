@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -321,34 +322,31 @@ export const PaymentsPage: React.FC = () => {
 
       {/* Payments Table */}
       <div className="rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-200/80 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02] text-xs uppercase font-semibold text-gray-500 dark:text-gray-400">
-                <th className="py-3.5 px-4">Payment #</th>
-                <th className="py-3.5 px-4">Invoice #</th>
-                <th className="py-3.5 px-4">Client</th>
-                <th className="py-3.5 px-4">Date</th>
-                <th className="py-3.5 px-4">Method</th>
-                <th className="py-3.5 px-4">Amount</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-4 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200/60 dark:divide-white/5 text-sm">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-400">
-                    Loading payments...
-                  </td>
+        {isLoading ? (
+          <TableSkeleton rows={6} columns={7} />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200/80 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02] text-xs uppercase font-semibold text-gray-500 dark:text-gray-400">
+                  <th className="py-3.5 px-4">Payment #</th>
+                  <th className="py-3.5 px-4">Invoice #</th>
+                  <th className="py-3.5 px-4">Client</th>
+                  <th className="py-3.5 px-4">Date</th>
+                  <th className="py-3.5 px-4">Method</th>
+                  <th className="py-3.5 px-4">Amount</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4 text-center">Actions</th>
                 </tr>
-              ) : payments.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-400">
-                    No payment records found. Click &quot;Record Payment&quot; to log incoming cash inflow.
-                  </td>
-                </tr>
-              ) : (
+              </thead>
+              <tbody className="divide-y divide-gray-200/60 dark:divide-white/5 text-sm">
+                {payments.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-gray-400">
+                      No payment records found. Click &quot;Record Payment&quot; to log incoming cash inflow.
+                    </td>
+                  </tr>
+                ) : (
                 payments.map((payment: PaymentItem, idx: number) => {
                   const isLastRow = idx >= payments.length - 2 && payments.length > 2;
                   return (
@@ -471,6 +469,7 @@ export const PaymentsPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        )}
 
         {/* Pagination Footer */}
         <div className="p-4 border-t border-gray-200/80 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 dark:text-gray-400">

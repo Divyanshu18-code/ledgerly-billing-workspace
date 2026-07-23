@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import {
   useQuotationsQuery,
   useDeleteQuotationMutation,
@@ -20,7 +21,6 @@ import {
   Copy,
   FileCheck2,
   Trash2,
-  Loader2,
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
@@ -325,10 +325,7 @@ export const QuotationsPage: React.FC = () => {
 
       {/* Main Quotations Table / Empty State */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-3" />
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Loading quotations catalog...</p>
-        </div>
+        <TableSkeleton rows={6} columns={7} />
       ) : quotations.length === 0 ? (
         <div className="p-12 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/70 dark:bg-[#121118]/70 backdrop-blur-xl text-center space-y-4">
           <div className="h-14 w-14 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto">

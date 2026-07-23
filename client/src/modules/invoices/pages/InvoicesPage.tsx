@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import {
   useInvoicesQuery,
   useDeleteInvoiceMutation,
@@ -21,7 +22,6 @@ import {
   Copy,
   Trash2,
   AlertCircle,
-  Loader2,
   MessageCircle,
   MoreVertical,
 } from 'lucide-react';
@@ -192,7 +192,7 @@ export const InvoicesPage: React.FC = () => {
   };
 
   return (
-    <div className="relative space-y-8 max-w-6xl mx-auto pb-16">
+    <div className="relative space-y-8 w-full pb-16">
       {/* Ambient lighting glow */}
       <div className="absolute top-[-5%] left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-blue-600/10 dark:bg-blue-500/10 rounded-full blur-[160px] pointer-events-none" />
 
@@ -316,10 +316,7 @@ export const InvoicesPage: React.FC = () => {
       {/* Main Table */}
       <div className="rounded-[26px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#13111c]/80 backdrop-blur-2xl shadow-sm overflow-hidden relative z-10">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-3" />
-            <p className="text-xs font-medium text-gray-500">Loading invoices database...</p>
-          </div>
+          <TableSkeleton rows={6} columns={8} />
         ) : isError ? (
           <div className="p-12 text-center space-y-3">
             <AlertCircle className="h-8 w-8 text-rose-500 mx-auto" />
