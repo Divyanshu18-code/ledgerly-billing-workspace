@@ -457,13 +457,13 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Right Column (1/3): Invoice Status Breakdown Donut Chart */}
-        <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs flex flex-col">
-          <div className="space-y-0.5 mb-2">
+        <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs flex flex-col justify-between">
+          <div className="space-y-0.5 mb-4">
             <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoice Status Breakdown</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">Outstanding and paid invoice shares</p>
           </div>
 
-          <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-8 py-4 my-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-2">
             {/* SVG Donut Chart */}
             <div className="relative h-44 w-44 flex items-center justify-center shrink-0">
               <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
@@ -498,21 +498,21 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {/* Donut Legend List */}
-            <div className="space-y-4 text-xs w-full sm:w-auto min-w-[140px]">
-              <div className="flex items-center justify-between gap-4 p-2.5 rounded-xl bg-gray-50/70 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+            <div className="space-y-4 text-xs w-full sm:w-auto">
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
                   <span className="font-semibold text-gray-700 dark:text-gray-300">Paid</span>
                 </div>
-                <span className="font-mono font-bold text-gray-900 dark:text-white">{paidCount} ({paidPct}%)</span>
+                <span className="font-mono text-gray-500 dark:text-gray-400">{paidCount} ({paidPct}%)</span>
               </div>
 
-              <div className="flex items-center justify-between gap-4 p-2.5 rounded-xl bg-gray-50/70 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
                   <span className="font-semibold text-gray-700 dark:text-gray-300">Outstanding</span>
                 </div>
-                <span className="font-mono font-bold text-gray-900 dark:text-white">{pendingCount} ({outstandingPct}%)</span>
+                <span className="font-mono text-gray-500 dark:text-gray-400">{pendingCount} ({outstandingPct}%)</span>
               </div>
             </div>
           </div>
