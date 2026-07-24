@@ -8,7 +8,7 @@ import { useInvoicesQuery } from '@/modules/invoices/hooks/useInvoices';
 import { useQuotationsQuery } from '@/modules/quotations/hooks/useQuotations';
 import { useExpensesQuery } from '@/modules/expenses/hooks/useExpenses';
 import { usePaymentsQuery } from '@/modules/payments/hooks/usePayments';
-import { FinancialTrendAreaChart } from '@/modules/reports/components/InteractiveCharts';
+import { AnimatedDashboardChart } from '../components/AnimatedDashboardChart';
 import {
   Users,
   RefreshCw,
@@ -121,11 +121,10 @@ export const DashboardPage: React.FC = () => {
 
   const monthsList = getMonthlyRevenueData();
 
-  const trendChartData = monthsList.map((m) => ({
+  const chartDataPoints = monthsList.map((m) => ({
     month: m.label,
-    revenue: m.total,
-    expenses: m.expenses,
-    profit: m.total - m.expenses,
+    year: m.year,
+    total: m.total,
   }));
 
   // Quick Insights Calculations (Current Month)
@@ -312,7 +311,7 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          <FinancialTrendAreaChart data={trendChartData} currencySymbol={currencySymbol} hideSummaryBox={true} />
+          <AnimatedDashboardChart data={chartDataPoints} currencySymbol={currencySymbol} />
         </div>
 
         {/* Right Column (1/3): Invoice Status Breakdown Donut Chart */}
