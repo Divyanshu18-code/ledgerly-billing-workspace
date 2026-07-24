@@ -4,11 +4,13 @@ import type { MonthlyTrendData, StatusDistribution, CategoryBreakdown } from '..
 interface TrendChartProps {
   data: MonthlyTrendData[];
   currencySymbol?: string;
+  hideSummaryBox?: boolean;
 }
 
 export const FinancialTrendAreaChart: React.FC<TrendChartProps> = ({
   data,
   currencySymbol = '₹',
+  hideSummaryBox = false,
 }) => {
   const [selectedIdx, setSelectedIdx] = useState<number>(data && data.length > 0 ? data.length - 1 : 0);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
@@ -181,7 +183,7 @@ export const FinancialTrendAreaChart: React.FC<TrendChartProps> = ({
         </svg>
 
         {/* Selected Month Summary Card */}
-        {activeItem && (
+        {!hideSummaryBox && activeItem && (
           <div className="mt-3 p-4 rounded-2xl border border-gray-200/90 dark:border-white/15 bg-white/90 dark:bg-[#181624]/90 shadow-xl backdrop-blur-md flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold font-mono">

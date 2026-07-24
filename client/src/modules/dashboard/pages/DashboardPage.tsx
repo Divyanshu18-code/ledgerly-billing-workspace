@@ -17,11 +17,10 @@ import {
   FileSpreadsheet,
   Clock,
   FileText,
-  TrendingUp,
-  ArrowUpRight,
   Receipt,
   Calendar,
-  ChevronDown,
+  TrendingUp,
+  ArrowUpRight,
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
@@ -310,23 +309,22 @@ export const DashboardPage: React.FC = () => {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 text-xs font-semibold text-gray-700 dark:text-gray-300">
               <Calendar className="h-3.5 w-3.5 text-gray-400" />
               <span>Trailing 9 Months</span>
-              <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
             </div>
           </div>
 
-          <FinancialTrendAreaChart data={trendChartData} currencySymbol={currencySymbol} />
+          <FinancialTrendAreaChart data={trendChartData} currencySymbol={currencySymbol} hideSummaryBox={true} />
         </div>
 
         {/* Right Column (1/3): Invoice Status Breakdown Donut Chart */}
-        <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs flex flex-col justify-between">
-          <div className="space-y-0.5 mb-4">
+        <div className="lg:col-span-1 p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs flex flex-col justify-between">
+          <div className="space-y-0.5 mb-2">
             <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoice Status Breakdown</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">Outstanding and paid invoice shares</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-2">
+          <div className="flex-1 flex flex-col sm:flex-row items-center justify-around gap-4 py-2 my-auto">
             {/* SVG Donut Chart */}
-            <div className="relative h-44 w-44 flex items-center justify-center shrink-0">
+            <div className="relative h-36 w-36 flex items-center justify-center shrink-0">
               <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="15.91" fill="none" stroke="rgba(156, 163, 175, 0.15)" strokeWidth="3.5" />
                 {/* Paid Segment (Emerald Green) */}
@@ -353,28 +351,36 @@ export const DashboardPage: React.FC = () => {
                 />
               </svg>
               <div className="text-center space-y-0.5">
-                <span className="text-3xl font-black text-gray-900 dark:text-white font-heading">{totalInvoicesCount}</span>
-                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Total</p>
+                <span className="text-2xl font-black text-gray-900 dark:text-white font-heading">{totalInvoicesCount}</span>
+                <p className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Total</p>
               </div>
             </div>
 
             {/* Donut Legend List */}
-            <div className="space-y-4 text-xs w-full sm:w-auto">
-              <div className="flex items-center justify-between gap-4">
+            <div className="space-y-2 text-xs w-full sm:w-auto flex-1">
+              <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-gray-50/80 dark:bg-white/5 border border-gray-100 dark:border-white/5">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
                   <span className="font-semibold text-gray-700 dark:text-gray-300">Paid</span>
                 </div>
-                <span className="font-mono text-gray-500 dark:text-gray-400">{paidCount} ({paidPct}%)</span>
+                <span className="font-mono font-bold text-gray-900 dark:text-white">{paidCount} ({paidPct}%)</span>
               </div>
 
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-gray-50/80 dark:bg-white/5 border border-gray-100 dark:border-white/5">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
                   <span className="font-semibold text-gray-700 dark:text-gray-300">Outstanding</span>
                 </div>
-                <span className="font-mono text-gray-500 dark:text-gray-400">{pendingCount} ({outstandingPct}%)</span>
+                <span className="font-mono font-bold text-gray-900 dark:text-white">{pendingCount} ({outstandingPct}%)</span>
               </div>
+            </div>
+          </div>
+
+          {/* Collection Efficiency Summary Banner */}
+          <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-between text-xs mt-2">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="font-bold text-blue-600 dark:text-blue-400">Collection Efficiency</span>
             </div>
           </div>
         </div>
