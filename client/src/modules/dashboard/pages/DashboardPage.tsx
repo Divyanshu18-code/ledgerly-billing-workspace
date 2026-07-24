@@ -339,9 +339,9 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Middle Row (2 Columns: Invoiced Revenue 2/3 + Invoice Status Breakdown 1/3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column (2/3): Invoiced Revenue Line/Area Chart */}
-        <div className="lg:col-span-2 p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs">
+        <div className="md:col-span-2 p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs">
           <div className="flex justify-between items-center mb-6">
             <div className="space-y-0.5">
               <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoiced Revenue</h2>
@@ -459,7 +459,7 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Right Column (1/3): Invoice Status Breakdown Donut Chart */}
-        <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs flex flex-col justify-between">
+        <div className="md:col-span-1 p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs flex flex-col justify-between">
           <div className="space-y-0.5 mb-4">
             <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoice Status Breakdown</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">Outstanding and paid invoice shares</p>
