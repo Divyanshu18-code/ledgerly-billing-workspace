@@ -30,7 +30,7 @@ export const DashboardPage: React.FC = () => {
 
   // Real-time query subscriptions across all core modules
   const { data: clientsData, refetch: refetchClients } = useClientsQuery({ limit: 100 });
-  const { refetch: refetchProducts } = useProductsQuery({ limit: 100 });
+  const { data: productsData, refetch: refetchProducts } = useProductsQuery({ limit: 100 });
   const { data: invoicesData, refetch: refetchInvoices } = useInvoicesQuery({ limit: 100 });
   const { data: quotationsData, refetch: refetchQuotations } = useQuotationsQuery({ limit: 100 });
   const { data: expensesData, refetch: refetchExpenses } = useExpensesQuery({ limit: 100 });
@@ -57,12 +57,14 @@ export const DashboardPage: React.FC = () => {
 
   // Extract real-time arrays
   const clients = (clientsData?.clients || (clientsData as any)?.data || []) as any[];
+  const products = (productsData?.items || (productsData as any)?.data || []) as any[];
   const invoices = (invoicesData?.data || (invoicesData as any)?.invoices || []) as any[];
   const quotations = (quotationsData?.data || (quotationsData as any)?.quotations || []) as any[];
   const expenses = ((expensesData as any)?.expenses || (expensesData as any)?.data || (expensesData as any)?.items || []) as any[];
   const payments = ((paymentsData as any)?.payments || (paymentsData as any)?.data || (paymentsData as any)?.items || []) as any[];
 
   const totalClientsCount = clientsData?.pagination?.total ?? clients.length;
+  const totalProductsCount = (productsData as any)?.pagination?.totalItems ?? (productsData as any)?.pagination?.total ?? products.length;
   const totalInvoicesCount = (invoicesData as any)?.pagination?.total ?? invoicesData?.pagination?.totalItems ?? invoices.length;
   const totalQuotationsCount = quotationsData?.pagination?.totalItems ?? (quotationsData as any)?.pagination?.total ?? quotations.length;
 
@@ -266,7 +268,7 @@ export const DashboardPage: React.FC = () => {
     {
       title: 'ACTIVE DIRECTORY',
       value: `${totalClientsCount} Clients`,
-      description: 'and 0 team registered',
+      description: `and ${totalProductsCount} items registered`,
       icon: Users,
       color: 'text-teal-500 bg-teal-500/10 border-teal-500/20',
     },
