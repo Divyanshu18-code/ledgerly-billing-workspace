@@ -30,7 +30,7 @@ export const DashboardPage: React.FC = () => {
 
   // Real-time query subscriptions across all core modules
   const { data: clientsData, refetch: refetchClients } = useClientsQuery({ limit: 100 });
-  const { data: productsData, refetch: refetchProducts } = useProductsQuery({ limit: 100 });
+  const { refetch: refetchProducts } = useProductsQuery({ limit: 100 });
   const { data: invoicesData, refetch: refetchInvoices } = useInvoicesQuery({ limit: 100 });
   const { data: quotationsData, refetch: refetchQuotations } = useQuotationsQuery({ limit: 100 });
   const { data: expensesData, refetch: refetchExpenses } = useExpensesQuery({ limit: 100 });
@@ -57,14 +57,12 @@ export const DashboardPage: React.FC = () => {
 
   // Extract real-time arrays
   const clients = (clientsData?.clients || (clientsData as any)?.data || []) as any[];
-  const products = (productsData?.items || (productsData as any)?.data || []) as any[];
   const invoices = (invoicesData?.data || (invoicesData as any)?.invoices || []) as any[];
   const quotations = (quotationsData?.data || (quotationsData as any)?.quotations || []) as any[];
   const expenses = ((expensesData as any)?.expenses || (expensesData as any)?.data || (expensesData as any)?.items || []) as any[];
   const payments = ((paymentsData as any)?.payments || (paymentsData as any)?.data || (paymentsData as any)?.items || []) as any[];
 
   const totalClientsCount = clientsData?.pagination?.total ?? clients.length;
-  const totalProductsCount = (productsData as any)?.pagination?.totalItems ?? (productsData as any)?.pagination?.total ?? products.length;
   const totalInvoicesCount = (invoicesData as any)?.pagination?.total ?? invoicesData?.pagination?.totalItems ?? invoices.length;
   const totalQuotationsCount = quotationsData?.pagination?.totalItems ?? (quotationsData as any)?.pagination?.total ?? quotations.length;
 
@@ -268,7 +266,7 @@ export const DashboardPage: React.FC = () => {
     {
       title: 'ACTIVE DIRECTORY',
       value: `${totalClientsCount} Clients`,
-      description: `and ${totalProductsCount} items registered`,
+      description: 'and 0 team registered',
       icon: Users,
       color: 'text-teal-500 bg-teal-500/10 border-teal-500/20',
     },
@@ -339,9 +337,9 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Middle Row (2 Columns: Invoiced Revenue 2/3 + Invoice Status Breakdown 1/3) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (2/3): Invoiced Revenue Line/Area Chart */}
-        <div className="md:col-span-2 p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs">
+        <div className="lg:col-span-2 p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs">
           <div className="flex justify-between items-center mb-6">
             <div className="space-y-0.5">
               <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoiced Revenue</h2>
@@ -456,10 +454,11 @@ export const DashboardPage: React.FC = () => {
                 })}
               </div>
             </div>
+          </div>
         </div>
 
         {/* Right Column (1/3): Invoice Status Breakdown Donut Chart */}
-        <div className="md:col-span-1 p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs flex flex-col justify-between">
+        <div className="p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs flex flex-col justify-between">
           <div className="space-y-0.5 mb-4">
             <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoice Status Breakdown</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">Outstanding and paid invoice shares</p>
@@ -495,7 +494,7 @@ export const DashboardPage: React.FC = () => {
               </svg>
               <div className="text-center space-y-0.5">
                 <span className="text-3xl font-black text-gray-900 dark:text-white font-heading">{totalInvoicesCount}</span>
-                <p className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Total</p>
+                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Total</p>
               </div>
             </div>
 
@@ -686,7 +685,6 @@ export const DashboardPage: React.FC = () => {
                 );
               })
             )}
-            </div>
           </div>
         </div>
       </div>
