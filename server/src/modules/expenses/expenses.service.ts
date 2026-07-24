@@ -1,4 +1,6 @@
 import { expensesRepository } from './repositories/expenses.repository';
+import { activityService } from '../activity/activity.service';
+import { notificationsService } from '../notifications/notifications.service';
 import {
   CreateExpenseDTO,
   UpdateExpenseDTO,
@@ -60,7 +62,7 @@ export class ExpensesService {
       }
     }
 
-    return expensesRepository.create(workspaceId, userId, {
+    const expense = await expensesRepository.create(workspaceId, userId, {
       ...data,
       expenseNumber,
       amount,
@@ -68,6 +70,28 @@ export class ExpensesService {
       totalAmount,
       categoryName,
     });
+
+    // Auto Activity & Notification
+    activityService.logActivity({
+      workspaceId,
+      userId,
+      action: 'EXPENSE_ADDED',
+      module: 'EXPENSE',
+      description: `Added expense ${expense.expenseNumber} of ${expense.currency} ${expense.totalAmount} (${categoryName})`,
+      entityId: expense.id,
+    });
+
+    notificationsService.notifyWorkspaceMembers(
+      workspaceId,
+      userId,
+      'EXPENSE_ADDED',
+      'Expense Added',
+      `New expense ${expense.expenseNumber} of ${expense.currency} ${expense.totalAmount} (${categoryName}) logged.`,
+      expense.id,
+      'EXPENSE'
+    );
+
+    return expense;
   }
 
   /**

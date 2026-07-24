@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { useWorkspaceData, useWorkspacesList, useWorkspaceSwitch } from '@/modules/workspace/hooks/useWorkspace';
+import { NotificationPopover } from '@/modules/notifications/components/NotificationPopover';
 import {
   LayoutDashboard,
   Users,
@@ -92,13 +93,13 @@ export const DashboardLayout: React.FC = () => {
 
   const managementItems = [
     { name: 'Notifications', path: '/notifications', icon: Bell },
+    { name: 'Audit Logs', path: '/audit-logs', icon: Scroll },
     { name: 'Team & Roles', path: '/team', icon: Users },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
   const futureItems = [
     { name: 'AI Assistant', path: '/ai-assistant', icon: Bot },
-    { name: 'Audit Logs', path: '/audit-logs', icon: Scroll },
     { name: 'Subscription', path: '/subscription', icon: ShieldCheck },
   ];
 
@@ -307,15 +308,8 @@ export const DashboardLayout: React.FC = () => {
               <span>Create</span>
             </button>
 
-            {/* Notification Bell */}
-            <button
-              onClick={() => navigate('/notifications')}
-              className="p-2 rounded-lg border border-transparent hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition cursor-pointer relative"
-              title="Notifications"
-            >
-              <Bell className="h-4.5 w-4.5" />
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-            </button>
+            {/* Notification Bell Popover */}
+            <NotificationPopover />
 
             {/* Theme Toggle Button */}
             <button

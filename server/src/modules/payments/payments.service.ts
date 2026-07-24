@@ -3,6 +3,8 @@ import { prisma } from '../../config/db';
 import { paymentsRepository } from './repositories/payments.repository';
 import { CreatePaymentDTO, UpdatePaymentDTO, PaymentQueryParams } from './payments.types';
 import { ApiError } from '../../utils/errors';
+import { activityService } from '../activity/activity.service';
+import { notificationsService } from '../notifications/notifications.service';
 
 export class PaymentsService {
   /**
@@ -103,17 +105,25 @@ export class PaymentsService {
     // 5. Auto-sync Invoice status & balance
     await this.syncInvoicePaymentStatus(workspaceId, invoice.id);
 
-    // 6. Log Audit Log
-    try {
-      await prisma.auditLog.create({
-        data: {
-          workspaceId,
-          userId,
-          action: 'PAYMENT_RECORDED',
-          description: `Recorded payment ${payment.paymentNumber} of ${payment.currency} ${payment.amount} for invoice ${invoice.invoiceNumber}`,
-        },
-      });
-    } catch (_) {}
+    // 6. Log Activity & Notify Members
+    activityService.logActivity({
+      workspaceId,
+      userId,
+      action: 'PAYMENT_RECORDED',
+      module: 'PAYMENT',
+      description: `Recorded payment ${payment.paymentNumber} of ${payment.currency} ${payment.amount} for invoice #${invoice.invoiceNumber}`,
+      entityId: payment.id,
+    });
+
+    notificationsService.notifyWorkspaceMembers(
+      workspaceId,
+      userId,
+      'PAYMENT_RECEIVED',
+      'Payment Received',
+      `Payment ${payment.paymentNumber} of ${payment.currency} ${payment.amount} received for invoice #${invoice.invoiceNumber}.`,
+      payment.id,
+      'PAYMENT'
+    );
 
     return payment;
   }

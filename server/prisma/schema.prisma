@@ -32,6 +32,9 @@ model User {
   createdInvoices       Invoice[]             @relation("InvoiceCreatedBy")
   createdPayments       Payment[]             @relation("PaymentCreatedBy")
   createdExpenses       Expense[]             @relation("ExpenseCreatedBy")
+  notifications        Notification[]
+  notificationPrefs    NotificationPreference[]
+  activityLogs         ActivityLog[]
 }
 
 model Workspace {
@@ -64,6 +67,9 @@ model Workspace {
   createdBy        User?                 @relation("WorkspaceCreatedBy", fields: [createdById], references: [id])
   invitations      WorkspaceInvitation[]
   workspaceMembers WorkspaceMember[]
+  notifications    Notification[]
+  notificationPrefs NotificationPreference[]
+  activityLogs     ActivityLog[]
 }
 
 model WorkspaceMember {
@@ -379,6 +385,77 @@ model AuditLog {
   createdAt   DateTime  @default(now())
   user        User?     @relation(fields: [userId], references: [id])
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+enum NotificationType {
+  INVOICE_CREATED
+  INVOICE_PAID
+  INVOICE_OVERDUE
+  PAYMENT_RECEIVED
+  QUOTATION_ACCEPTED
+  QUOTATION_REJECTED
+  EXPENSE_ADDED
+  TEAM_INVITATION
+  WORKSPACE_UPDATED
+  SYSTEM
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  workspaceId String
+  userId      String
+  type        NotificationType @default(SYSTEM)
+  title       String
+  message     String
+  entityId    String?
+  entityType  String?
+  isRead      Boolean          @default(false)
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, userId, isRead])
+  @@index([workspaceId, createdAt])
+}
+
+model NotificationPreference {
+  id                 String   @id @default(uuid())
+  userId             String
+  workspaceId        String
+  emailNotifications Boolean  @default(true)
+  invoiceAlerts      Boolean  @default(true)
+  paymentAlerts      Boolean  @default(true)
+  quotationAlerts    Boolean  @default(true)
+  expenseAlerts      Boolean  @default(true)
+  systemAlerts       Boolean  @default(true)
+  updatedAt          DateTime @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  workspaceId String
+  userId      String?
+  action      String
+  module      String   @default("GENERAL")
+  description String
+  entityId    String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, module])
+  @@index([workspaceId, userId])
 }
 
 model WorkspaceInvitation {

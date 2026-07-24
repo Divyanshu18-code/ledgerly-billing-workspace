@@ -2,6 +2,8 @@ import { InvoicesRepository, FindInvoicesQueryOptions } from './repositories/inv
 import { quotationsRepository } from '../quotations/repositories/quotations.repository';
 import { InvoiceStatus, QuotationStatus } from '@prisma/client';
 import { ApiError } from '../../utils/errors';
+import { activityService } from '../activity/activity.service';
+import { notificationsService } from '../notifications/notifications.service';
 
 export interface CreateInvoiceInputItem {
   productId?: string | null;
@@ -128,6 +130,26 @@ export class InvoicesService {
       balanceDue: totals.grandTotal,
       items: totals.items,
     });
+
+    // Auto Activity Log & Notification
+    activityService.logActivity({
+      workspaceId: input.workspaceId,
+      userId: input.createdById || null,
+      action: 'INVOICE_CREATED',
+      module: 'INVOICE',
+      description: `Created invoice #${invoice.invoiceNumber}`,
+      entityId: invoice.id,
+    });
+
+    notificationsService.notifyWorkspaceMembers(
+      input.workspaceId,
+      input.createdById || null,
+      'INVOICE_CREATED',
+      'New Invoice Created',
+      `Invoice #${invoice.invoiceNumber} for ${totals.grandTotal} ${input.currency || 'INR'} has been created.`,
+      invoice.id,
+      'INVOICE'
+    );
 
     return invoice;
   }

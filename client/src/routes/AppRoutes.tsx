@@ -29,12 +29,12 @@ import { CreateExpensePage } from '@/modules/expenses/pages/CreateExpensePage';
 import { ExpenseDetailsPage } from '@/modules/expenses/pages/ExpenseDetailsPage';
 import { EditExpensePage } from '@/modules/expenses/pages/EditExpensePage';
 import { ReportsDashboardPage } from '@/modules/reports/pages/ReportsDashboardPage';
+import { NotificationsPage } from '@/modules/notifications/pages/NotificationsPage';
+import { ActivityLogsPage } from '@/modules/activity/pages/ActivityLogsPage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ComingSoon } from '@/components/ComingSoon';
 import {
-  Bell,
   Bot,
-  Scroll,
   ShieldCheck,
   User,
 } from 'lucide-react';
@@ -102,19 +102,8 @@ export const AppRoutes: React.FC = () => {
             <Route path="/expenses/:id" element={<ExpenseDetailsPage />} />
             <Route path="/expenses/:id/edit" element={<EditExpensePage />} />
             <Route path="/reports" element={<ReportsDashboardPage />} />
-
-            {/* Management Paths */}
-            <Route
-              path="/notifications"
-              element={
-                <ComingSoon
-                  icon={Bell}
-                  title="Notifications Center"
-                  description="Manage email templates for invoice alerts, payment receipts, due reminders, and system security warnings."
-                  breadcrumbs={['Management', 'Notifications']}
-                />
-              }
-            />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/audit-logs" element={<ActivityLogsPage />} />
             <Route path="/team" element={<WorkspacePage />} />
             <Route path="/settings" element={<WorkspacePage />} />
 
@@ -127,17 +116,6 @@ export const AppRoutes: React.FC = () => {
                   title="Gemini AI Assistant"
                   description="Generate invoice descriptions, analyze company cash flow, chat with your finance logs, and automate calculations."
                   breadcrumbs={['Future', 'Gemini AI']}
-                />
-              }
-            />
-            <Route
-              path="/audit-logs"
-              element={
-                <ComingSoon
-                  icon={Scroll}
-                  title="Security Audit Logs"
-                  description="Track logins history, configuration updates, workspace settings modifications, and critical invoice edit logs."
-                  breadcrumbs={['Future', 'Audit Logs']}
                 />
               }
             />
