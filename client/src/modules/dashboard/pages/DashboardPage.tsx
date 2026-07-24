@@ -8,7 +8,6 @@ import { useInvoicesQuery } from '@/modules/invoices/hooks/useInvoices';
 import { useQuotationsQuery } from '@/modules/quotations/hooks/useQuotations';
 import { useExpensesQuery } from '@/modules/expenses/hooks/useExpenses';
 import { usePaymentsQuery } from '@/modules/payments/hooks/usePayments';
-import { AnimatedDashboardChart } from '../components/AnimatedDashboardChart';
 import {
   Users,
   RefreshCw,
@@ -19,6 +18,7 @@ import {
   FileText,
   Receipt,
   Calendar,
+  ChevronDown,
   TrendingUp,
   ArrowUpRight,
 } from 'lucide-react';
@@ -37,6 +37,7 @@ export const DashboardPage: React.FC = () => {
   const { data: paymentsData, refetch: refetchPayments } = usePaymentsQuery({ limit: 100 });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
   // Manual & Automated Real-time Sync
   const handleRefresh = async () => {
@@ -116,16 +117,55 @@ export const DashboardPage: React.FC = () => {
       }
     });
 
-    return monthsList;
+    const maxTotal = Math.max(...monthsList.map((m) => m.total), 1000);
+    return { monthsList, maxTotal };
   };
 
-  const monthsList = getMonthlyRevenueData();
+  const { monthsList, maxTotal } = getMonthlyRevenueData();
 
-  const chartDataPoints = monthsList.map((m) => ({
-    month: m.label,
-    year: m.year,
-    total: m.total,
-  }));
+  // Dynamic SVG Curve Points
+  const points = monthsList.map((m, idx) => {
+    const x = (idx / (monthsList.length - 1)) * 900 + 50;
+    const y = m.total === 0 ? 190 : 180 - (m.total / maxTotal) * 150;
+    return { x, y, label: m.label, total: m.total };
+  });
+
+  const generateSmoothPath = (pts: { x: number; y: number; total: number }[]) => {
+    if (pts.length === 0) return '';
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const curr = pts[i];
+      const next = pts[i + 1];
+
+      if (curr.total === 0 && next.total === 0) {
+        d += ` L ${next.x} 190`;
+      } else if (curr.total === 0 && next.total > 0) {
+        const cp1x = curr.x + (next.x - curr.x) * 0.6;
+        const cp1y = 190;
+        const cp2x = curr.x + (next.x - curr.x) * 0.85;
+        const cp2y = next.y;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} ${next.y}`;
+      } else if (curr.total > 0 && next.total === 0) {
+        const cp1x = curr.x + (next.x - curr.x) * 0.15;
+        const cp1y = curr.y;
+        const cp2x = curr.x + (next.x - curr.x) * 0.4;
+        const cp2y = 190;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} 190`;
+      } else {
+        const cp1x = curr.x + (next.x - curr.x) / 2;
+        const cp1y = curr.y;
+        const cp2x = curr.x + (next.x - curr.x) / 2;
+        const cp2y = next.y;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} ${next.y}`;
+      }
+    }
+    return d;
+  };
+
+  const linePath = generateSmoothPath(points);
+  const areaPath = linePath
+    ? `${linePath} L ${points[points.length - 1].x} 190 L ${points[0].x} 190 Z`
+    : '';
 
   // Quick Insights Calculations (Current Month)
   const now = new Date();
@@ -298,20 +338,123 @@ export const DashboardPage: React.FC = () => {
 
       {/* Middle Row (2 Columns: Invoiced Revenue 2/3 + Invoice Status Breakdown 1/3) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (2/3): Financial Trend Area Chart */}
+        {/* Left Column (2/3): Invoiced Revenue Line/Area Chart */}
         <div className="lg:col-span-2 p-6 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-6">
             <div className="space-y-0.5">
-              <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Financial Performance Trend</h2>
+              <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Invoiced Revenue</h2>
               <p className="text-xs text-gray-500 dark:text-gray-400">Monthly billing trends and revenue performance</p>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 text-xs font-semibold text-gray-700 dark:text-gray-300">
               <Calendar className="h-3.5 w-3.5 text-gray-400" />
-              <span>Trailing 9 Months</span>
+              <span>This Year</span>
+              <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
             </div>
           </div>
 
-          <AnimatedDashboardChart data={chartDataPoints} currencySymbol={currencySymbol} />
+          <div className="relative h-64 w-full flex pb-6">
+            {/* Y-Axis scale */}
+            <div className="w-12 h-48 flex flex-col justify-between text-[11px] font-mono text-gray-400 dark:text-gray-500 pr-2 pt-0.5 pb-0.5 text-right select-none shrink-0">
+              <span>{Math.round(maxTotal)}</span>
+              <span>{Math.round(maxTotal * 0.75)}</span>
+              <span>{Math.round(maxTotal * 0.5)}</span>
+              <span>{Math.round(maxTotal * 0.25)}</span>
+              <span>0</span>
+            </div>
+
+            {/* SVG Content Area */}
+            <div className="relative flex-1 h-64">
+              <div className="absolute inset-x-0 top-1 border-t border-dashed border-gray-200/40 dark:border-white/5" />
+              <div className="absolute inset-x-0 top-1/4 border-t border-dashed border-gray-200/40 dark:border-white/5" />
+              <div className="absolute inset-x-0 top-2/4 border-t border-dashed border-gray-200/40 dark:border-white/5" />
+              <div className="absolute inset-x-0 top-3/4 border-t border-dashed border-gray-200/40 dark:border-white/5" />
+              <div className="absolute inset-x-0 bottom-8 border-t border-solid border-gray-300/60 dark:border-white/10" />
+
+              <svg className="absolute inset-x-0 top-1 h-48 w-full overflow-visible" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="blueGlow" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="rgba(37, 99, 235, 0.35)" />
+                    <stop offset="100%" stopColor="rgba(37, 99, 235, 0.0)" />
+                  </linearGradient>
+                </defs>
+
+                {areaPath && <path d={areaPath} fill="url(#blueGlow)" />}
+                {linePath && <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="3.5" strokeLinecap="round" />}
+
+                {(() => {
+                  const activeIdx = hoveredPoint !== null ? hoveredPoint : points.length - 1;
+                  return points.map((pt, idx) => {
+                    const isActive = activeIdx === idx;
+                    return (
+                      <g
+                        key={idx}
+                        className="cursor-pointer"
+                        onMouseEnter={() => setHoveredPoint(idx)}
+                        onMouseLeave={() => setHoveredPoint(null)}
+                      >
+                        <circle cx={pt.x} cy={pt.y} r="18" fill="transparent" />
+                        {isActive && <line x1={pt.x} y1={pt.y} x2={pt.x} y2={195} stroke="#38bdf8" strokeWidth="2" />}
+                        <circle
+                          cx={pt.x}
+                          cy={pt.y}
+                          r="5"
+                          fill={isActive ? '#ffffff' : '#2563eb'}
+                          stroke={isActive ? '#38bdf8' : '#ffffff'}
+                          strokeWidth={isActive ? '3.5' : '2'}
+                        />
+                      </g>
+                    );
+                  });
+                })()}
+              </svg>
+
+              {/* Floating Active Tooltip */}
+              {(() => {
+                const activeIdx = hoveredPoint !== null ? hoveredPoint : points.length - 1;
+                if (activeIdx < 0 || !points[activeIdx]) return null;
+                const pt = points[activeIdx];
+                return (
+                  <div
+                    style={{
+                      left: `${(pt.x / 1000) * 100}%`,
+                      top: `${Math.max(10, (pt.y / 200) * 100 - 30)}%`,
+                    }}
+                    className="absolute z-30 p-2.5 rounded-xl border border-gray-700/80 dark:border-white/15 bg-[#121118] text-white shadow-2xl space-y-0.5 pointer-events-none transform -translate-x-1/2 -translate-y-full backdrop-blur-xl font-sans"
+                  >
+                    <div className="text-xs font-bold text-gray-300">{pt.label}</div>
+                    <div className="text-xs font-mono font-semibold text-blue-400">
+                      Revenue : {currencySymbol}{pt.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Month Labels - 100% Clear & Visible */}
+              <div className="absolute bottom-[-14px] inset-x-0 h-8 flex items-center text-[11px] text-gray-500 dark:text-gray-400 font-medium select-none">
+                {monthsList.map((m, idx) => {
+                  const activeIdx = hoveredPoint !== null ? hoveredPoint : points.length - 1;
+                  const isActive = activeIdx === idx;
+                  const pt = points[idx];
+                  return (
+                    <button
+                      key={`${m.year}-${m.month}`}
+                      type="button"
+                      style={{ left: `${(pt.x / 1000) * 100}%` }}
+                      onMouseEnter={() => setHoveredPoint(idx)}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                      className={`absolute cursor-pointer px-2 py-0.5 rounded-md transition-all transform -translate-x-1/2 ${
+                        isActive
+                          ? 'text-blue-500 font-bold bg-blue-500/10 border border-blue-500/30'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-blue-400 hover:bg-white/5'
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Right Column (1/3): Invoice Status Breakdown Donut Chart */}
