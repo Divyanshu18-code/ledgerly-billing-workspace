@@ -46,6 +46,7 @@ import expensesRoutes from './modules/expenses/expenses.routes';
 import reportsRoutes from './modules/reports/reports.routes';
 import notificationsRoutes from './modules/notifications/notifications.routes';
 import activityRoutes from './modules/activity/activity.routes';
+import settingsRoutes from './modules/settings/settings.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 const app = express();
@@ -75,6 +76,7 @@ app.use('/api/v1/expenses', expensesRoutes);
 app.use('/api/v1/reports', reportsRoutes);
 app.use('/api/v1/notifications', notificationsRoutes);
 app.use('/api/v1/activity', activityRoutes);
+app.use('/api/v1/settings', settingsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({

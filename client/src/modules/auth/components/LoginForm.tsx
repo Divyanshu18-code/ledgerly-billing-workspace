@@ -18,11 +18,14 @@ interface LoginFormProps {
   onNavigateToRegister: () => void;
 }
 
+import { TwoFactorVerifyModal } from './TwoFactorVerifyModal';
+
 export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToRegister }) => {
-  const { login, loginGoogle } = useAuth();
+  const { login, setAuthSession, loginGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [twoFactorData, setTwoFactorData] = useState<{ userId: string; email: string } | null>(null);
   const [searchParams] = useSearchParams();
   const verifyPending = searchParams.get('verifyPending') === 'true';
 
@@ -38,10 +41,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
-      await login({
+      const res = await login({
         email: data.email.trim(),
         password: data.password.trim(),
       });
+
+      if (res?.requires2FA) {
+        setTwoFactorData({
+          userId: res.data.userId,
+          email: res.data.email,
+        });
+        return;
+      }
+
       onSuccess();
     } catch (err: any) {
       const apiMessage = err.response?.data?.message || err.response?.data?.errors?.[0]?.message || err.message || 'Login failed. Please try again.';
@@ -49,6 +61,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handle2FASuccess = (data: any) => {
+    setAuthSession(data.user, data.workspace, data.accessToken);
+    setTwoFactorData(null);
+    onSuccess();
   };
 
   const handleGoogleSignIn = async (credentials: { email: string; firstName: string; lastName: string }) => {
@@ -218,6 +236,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
           Sign up for free
         </button>
       </div>
+
+      <TwoFactorVerifyModal
+        isOpen={!!twoFactorData}
+        userId={twoFactorData?.userId || ''}
+        email={twoFactorData?.email || ''}
+        onSuccess={handle2FASuccess}
+        onCancel={() => setTwoFactorData(null)}
+      />
     </div>
   );
 };

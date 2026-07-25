@@ -21,6 +21,8 @@ model User {
   verificationTokenExp DateTime?
   lockUntil            DateTime?
   loginAttempts        Int                   @default(0)
+  twoFactorOtp         String?
+  twoFactorOtpExp      DateTime?
   auditLogs            AuditLog[]
   createdClients       Client[]              @relation("ClientCreatedBy")
   createdWorkspaces    Workspace[]           @relation("WorkspaceCreatedBy")
@@ -70,6 +72,86 @@ model Workspace {
   notifications    Notification[]
   notificationPrefs NotificationPreference[]
   activityLogs     ActivityLog[]
+  settings         BusinessSettings?
+}
+
+model BusinessSettings {
+  id                   String     @id @default(uuid())
+  workspaceId          String     @unique
+  workspace            Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  // Company Profile
+  companyName          String     @default("My Business")
+  businessType         String?    @default("Private Limited")
+  gstNumber            String?
+  panNumber            String?
+  registrationNumber   String?
+  email                String?
+  phone                String?
+  website              String?
+  address              String?
+  city                 String?
+  state                String?
+  country              String?    @default("India")
+  postalCode           String?
+  
+  // Billing Configuration
+  invoicePrefix        String     @default("INV-2026-")
+  quotationPrefix      String     @default("QT-2026-")
+  paymentPrefix        String     @default("PAY-2026-")
+  expensePrefix        String     @default("EXP-2026-")
+  startingNumber       Int        @default(1001)
+  autoIncrement        Boolean    @default(true)
+  defaultPaymentTerms  String     @default("Due on Receipt")
+  invoiceDueDays       Int        @default(30)
+  
+  // Localization
+  currency             String     @default("INR")
+  timezone             String     @default("Asia/Kolkata")
+  language             String     @default("English (US)")
+  dateFormat           String     @default("DD/MM/YYYY")
+  numberFormat         String     @default("Indian Standard")
+  firstDayOfWeek       String     @default("Monday")
+  
+  // Tax
+  gstEnabled           Boolean    @default(true)
+  defaultGST           Float      @default(18)
+  cgst                 Float      @default(9)
+  sgst                 Float      @default(9)
+  igst                 Float      @default(18)
+  taxInclusive         Boolean    @default(false)
+  
+  // Invoice
+  invoiceTemplate      String     @default("Modern Glass")
+  footer               String?    @default("Thank you for your business.")
+  notes                String?
+  terms                String?
+  showLogo             Boolean    @default(true)
+  showSignature        Boolean    @default(true)
+  showQRCode           Boolean    @default(true)
+  
+  // Notifications
+  emailNotifications   Boolean    @default(true)
+  browserNotifications Boolean    @default(true)
+  invoiceAlerts        Boolean    @default(true)
+  paymentAlerts        Boolean    @default(true)
+  expenseAlerts        Boolean    @default(false)
+  customerAlerts       Boolean    @default(true)
+  
+  // Branding
+  companyLogo          String?
+  favicon              String?
+  primaryColor         String     @default("#2563eb")
+  secondaryColor       String     @default("#1e293b")
+  accentColor          String     @default("#10b981")
+  
+  // Security
+  twoFactorEnabled     Boolean    @default(false)
+  sessionTimeout       String     @default("60 Minutes")
+  autoLogout           Boolean    @default(true)
+  
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
 }
 
 model WorkspaceMember {

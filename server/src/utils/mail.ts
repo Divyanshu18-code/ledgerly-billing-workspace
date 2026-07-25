@@ -23,7 +23,7 @@ if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
   });
 }
 
-export async function logMail(to: string, subject: string, text: string) {
+export async function logMail(to: string, subject: string, text: string, html?: string) {
   // If SMTP is configured, send the real email
   if (transporter) {
     try {
@@ -32,6 +32,7 @@ export async function logMail(to: string, subject: string, text: string) {
         to,
         subject,
         text,
+        html: html || text,
       });
       console.log(`[mail] Email successfully sent to ${to} via SMTP.`);
       return;

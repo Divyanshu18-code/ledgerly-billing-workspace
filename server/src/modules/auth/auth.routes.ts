@@ -32,8 +32,14 @@ const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters long'),
 });
 
+const verify2FASchema = z.object({
+  userId: z.string().min(1, 'User ID is required'),
+  otpCode: z.string().length(6, 'OTP code must be 6 digits'),
+});
+
 router.post('/register', registerLimiter, validateBody(registerSchema), authController.register);
 router.post('/login', loginLimiter, validateBody(loginSchema), authController.login);
+router.post('/verify-2fa', validateBody(verify2FASchema), authController.verify2FA);
 router.post('/refresh', authController.refresh);
 router.post('/logout', authController.logout);
 router.get('/verify-email', authController.verifyEmail);

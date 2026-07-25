@@ -56,11 +56,51 @@ export class AuthController {
       
       const result = await authService.login({ email, password });
 
+      if (result.requires2FA) {
+        res.status(200).json({
+          status: 'success',
+          requires2FA: true,
+          message: '2-Step Verification required. OTP code sent to your email.',
+          data: {
+            userId: result.userId,
+            email: result.email,
+          },
+        });
+        return;
+      }
+
+      setRefreshTokenCookie(res, result.refreshToken!);
+
+      res.status(200).json({
+        status: 'success',
+        requires2FA: false,
+        message: 'Login successful',
+        data: {
+          user: result.user,
+          workspace: result.workspace,
+          accessToken: result.accessToken,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async verify2FA(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { userId, otpCode } = req.body;
+      if (!userId || !otpCode) {
+        res.status(400).json({ status: 'error', message: 'User ID and OTP code are required' });
+        return;
+      }
+
+      const result = await authService.verify2FA(userId, otpCode);
+
       setRefreshTokenCookie(res, result.refreshToken);
 
       res.status(200).json({
         status: 'success',
-        message: 'Login successful',
+        message: '2-Step Verification successful',
         data: {
           user: result.user,
           workspace: result.workspace,

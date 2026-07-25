@@ -5,6 +5,7 @@ import { authRepository } from './repositories/auth.repository';
 import { ApiError } from '~/utils/errors';
 import { prisma } from '~/config/db';
 import { logMail } from '~/utils/mail';
+import { generatePasswordResetHtml, generateVerificationEmailHtml, generate2FAOtpHtml } from '~/utils/mailTemplates';
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'access_secret';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh_secret';
@@ -119,7 +120,88 @@ console.log('AuthService.login - retrieved user:', { id: user?.id, email: user?.
     // Reset lockout counters on successful login
     await authRepository.updateUser(user.id, { loginAttempts: 0, lockUntil: null });
 
-    // Fetch user's first workspace membership
+    // Fetch user's first workspace membership with settings
+    const membership = await prisma.workspaceMember.findFirst({
+      where: { userId: user.id },
+      select: {
+        workspace: {
+          select: {
+            id: true,
+            name: true,
+            settings: {
+              select: {
+                twoFactorEnabled: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const is2FAEnabled = membership?.workspace?.settings?.twoFactorEnabled ?? false;
+
+    if (is2FAEnabled) {
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const twoFactorOtpExp = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      await authRepository.updateUser(user.id, {
+        twoFactorOtp: otpCode,
+        twoFactorOtpExp,
+      });
+
+      const html = generate2FAOtpHtml(otpCode, user.firstName || 'Valued User');
+      logMail(
+        user.email,
+        `Your 2-Step Verification Code: ${otpCode} - Ledgerly`,
+        `Your 2-Step Verification Code is: ${otpCode}. It will expire in 10 minutes.`,
+        html
+      );
+
+      return {
+        requires2FA: true,
+        userId: user.id,
+        email: user.email,
+        message: '2-Step Verification code sent to your email',
+      };
+    }
+
+    const { accessToken, refreshToken } = this.generateTokens(user.id, user.email);
+
+    return {
+      requires2FA: false,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isVerified: user.isVerified,
+      },
+      workspace: membership ? membership.workspace : null,
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async verify2FA(userId: string, otpCode: string) {
+    const user = await authRepository.findById(userId);
+    if (!user) {
+      throw ApiError.notFound('User not found');
+    }
+
+    if (!user.twoFactorOtp || user.twoFactorOtp !== otpCode.trim()) {
+      throw ApiError.badRequest('Invalid 2-Step Verification OTP code');
+    }
+
+    if (!user.twoFactorOtpExp || user.twoFactorOtpExp < new Date()) {
+      throw ApiError.badRequest('Verification code has expired. Please request a new code.');
+    }
+
+    // Clear OTP fields
+    await authRepository.updateUser(user.id, {
+      twoFactorOtp: null,
+      twoFactorOtpExp: null,
+    });
+
     const membership = await prisma.workspaceMember.findFirst({
       where: { userId: user.id },
       select: {
@@ -188,10 +270,12 @@ console.log('AuthService.login - retrieved user:', { id: user?.id, email: user?.
 
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const verificationLink = `${clientUrl}/verify-email?token=${verificationToken}`;
+    const html = generateVerificationEmailHtml(verificationLink, user.firstName || 'Valued User');
     logMail(
       user.email,
-      'Verify your email address (New Link)',
-      `Please verify your email by clicking the following link:\n${verificationLink}`
+      'Verify your email address - Ledgerly Billing',
+      `Please verify your email by clicking the following link:\n${verificationLink}`,
+      html
     );
   }
 
@@ -240,10 +324,12 @@ console.log('AuthService.login - retrieved user:', { id: user?.id, email: user?.
 
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
+    const html = generatePasswordResetHtml(resetLink, user.firstName || 'Valued User');
     logMail(
       user.email,
-      'Reset your password',
-      `You requested a password reset. Please click the following link to reset your password:\n${resetLink}`
+      'Reset your password - Ledgerly Billing',
+      `You requested a password reset. Please click the following link to reset your password:\n${resetLink}`,
+      html
     );
   }
 

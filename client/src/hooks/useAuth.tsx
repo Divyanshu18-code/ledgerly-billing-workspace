@@ -12,7 +12,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: any) => Promise<void>;
+  login: (credentials: any) => Promise<any>;
+  setAuthSession: (loggedInUser: any, workspace: any, accessToken: string) => void;
   loginGoogle: (credentials?: { email: string; firstName: string; lastName: string; workspaceName?: string }) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
@@ -46,19 +47,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
   }, []);
 
+  const setAuthSession = (loggedInUser: any, workspace: any, accessToken: string) => {
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('user', JSON.stringify(loggedInUser));
+    if (workspace) {
+      localStorage.setItem('activeWorkspaceId', workspace.id);
+      localStorage.setItem('activeWorkspaceName', workspace.name);
+    }
+    setUser(loggedInUser);
+  };
+
   const login = async (credentials: any) => {
     setError(null);
     try {
       const response = await apiClient.post('/auth/login', credentials);
-      const { user: loggedInUser, workspace, accessToken } = response.data.data;
-      
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('user', JSON.stringify(loggedInUser));
-      if (workspace) {
-        localStorage.setItem('activeWorkspaceId', workspace.id);
-        localStorage.setItem('activeWorkspaceName', workspace.name);
+
+      if (response.data.requires2FA) {
+        return response.data;
       }
-      setUser(loggedInUser);
+
+      const { user: loggedInUser, workspace, accessToken } = response.data.data;
+      setAuthSession(loggedInUser, workspace, accessToken);
+      return response.data;
     } catch (err: any) {
       const fieldError = err.response?.data?.errors?.[0]?.message;
       const errMsg = fieldError || err.response?.data?.message || 'Login failed. Please check your credentials.';
@@ -128,6 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isLoading,
         login,
+        setAuthSession,
         loginGoogle,
         register,
         logout,

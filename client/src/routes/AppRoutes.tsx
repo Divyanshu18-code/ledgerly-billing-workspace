@@ -31,6 +31,7 @@ import { EditExpensePage } from '@/modules/expenses/pages/EditExpensePage';
 import { ReportsDashboardPage } from '@/modules/reports/pages/ReportsDashboardPage';
 import { NotificationsPage } from '@/modules/notifications/pages/NotificationsPage';
 import { ActivityLogsPage } from '@/modules/activity/pages/ActivityLogsPage';
+import { BusinessSettingsPage } from '@/modules/settings/pages/BusinessSettingsPage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ComingSoon } from '@/components/ComingSoon';
 import {
@@ -105,7 +106,7 @@ export const AppRoutes: React.FC = () => {
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/audit-logs" element={<ActivityLogsPage />} />
             <Route path="/team" element={<WorkspacePage />} />
-            <Route path="/settings" element={<WorkspacePage />} />
+            <Route path="/settings" element={<BusinessSettingsPage />} />
 
             {/* Future Paths */}
             <Route
