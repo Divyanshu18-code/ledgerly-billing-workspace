@@ -7,9 +7,10 @@ import {
   useConvertToInvoiceMutation,
 } from '../hooks/useQuotations';
 import { useWorkspaceData } from '@/modules/workspace/hooks/useWorkspace';
+import { PDFPreviewModal } from '@/modules/pdf/components/PDFPreviewModal';
+import { SendEmailDialog } from '@/modules/pdf/components/SendEmailDialog';
 import {
   ArrowLeft,
-  Printer,
   Mail,
   Copy,
   FileCheck2,
@@ -20,6 +21,7 @@ import {
   Clock,
   Send,
   Sparkles,
+  Eye,
 } from 'lucide-react';
 
 export const QuotationDetailsPage: React.FC = () => {
@@ -34,8 +36,9 @@ export const QuotationDetailsPage: React.FC = () => {
   const convertMutation = useConvertToInvoiceMutation();
 
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [emailTo, setEmailTo] = useState('');
+  const [selectedTheme, setSelectedTheme] = useState('Modern Glass');
 
   const currencySymbol = workspace?.currency === 'USD' ? '$' : '₹';
 
@@ -96,15 +99,7 @@ export const QuotationDetailsPage: React.FC = () => {
     }
   };
 
-  const handleSendEmail = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsEmailModalOpen(false);
-    setFeedbackMsg({
-      type: 'success',
-      message: `PDF Rate Proposal for ${quotation.quotationNumber} queued for dispatch to ${emailTo || quotation.client.email}`,
-    });
-    setTimeout(() => setFeedbackMsg(null), 4000);
-  };
+
 
   return (
     <div className="relative space-y-6 max-w-5xl mx-auto pb-16 print:pb-0 print:space-y-2 print:max-w-none">
@@ -148,22 +143,20 @@ export const QuotationDetailsPage: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto justify-start md:justify-end shrink-0 py-1">
           <button
             type="button"
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
+            onClick={() => setIsPreviewModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition cursor-pointer shrink-0"
+            title="Preview A4 Live PDF Layout"
           >
-            <Printer className="h-3.5 w-3.5 text-blue-500" />
-            <span>Print PDF</span>
+            <Eye className="h-3.5 w-3.5" />
+            <span>Preview PDF</span>
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              setEmailTo(quotation.client.email || '');
-              setIsEmailModalOpen(true);
-            }}
+            onClick={() => setIsEmailModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
           >
-            <Mail className="h-3.5 w-3.5 text-amber-500" />
+            <Mail className="h-3.5 w-3.5 text-blue-400" />
             <span>Send Email</span>
           </button>
 
@@ -379,45 +372,31 @@ export const QuotationDetailsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Email Dispatch Modal */}
-      {isEmailModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in print:hidden">
-          <div className="w-full max-w-md p-6 rounded-3xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#161424] shadow-2xl space-y-4">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white font-heading">
-              Dispatch PDF Proposal via Email
-            </h3>
-            <form onSubmit={handleSendEmail} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">Recipient Email Address</label>
-                <input
-                  type="email"
-                  value={emailTo}
-                  onChange={(e) => setEmailTo(e.target.value)}
-                  required
-                  placeholder="client@company.com"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#1f1d2b] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
 
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEmailModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-500 hover:text-gray-800 dark:hover:text-white cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md cursor-pointer"
-                >
-                  Send Proposal PDF
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+      {/* Live A4 PDF Preview Modal */}
+      <PDFPreviewModal
+        type="quotation"
+        id={quotation.id}
+        number={quotation.quotationNumber}
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        onOpenEmail={(theme) => {
+          setSelectedTheme(theme);
+          setIsEmailModalOpen(true);
+        }}
+      />
+
+      {/* SMTP Send Email Dialog */}
+      <SendEmailDialog
+        type="quotation"
+        id={quotation.id}
+        number={quotation.quotationNumber}
+        defaultEmail={quotation.client?.email || ''}
+        theme={selectedTheme}
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+      />
     </div>
   );
 };

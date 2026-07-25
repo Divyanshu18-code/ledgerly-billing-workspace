@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { usePaymentQuery, useDeletePaymentMutation } from '../hooks/usePayments';
 import { useWorkspaceData } from '@/modules/workspace/hooks/useWorkspace';
+import { SendEmailDialog } from '@/modules/pdf/components/SendEmailDialog';
 
 export const PaymentDetailsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -541,6 +542,17 @@ export const PaymentDetailsPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {payment?.invoiceId && (
+        <SendEmailDialog
+          type="invoice"
+          id={payment.invoiceId}
+          number={payment.paymentNumber}
+          defaultEmail={emailTo}
+          isOpen={isEmailModalOpen}
+          onClose={() => setIsEmailModalOpen(false)}
+        />
       )}
     </div>
   );

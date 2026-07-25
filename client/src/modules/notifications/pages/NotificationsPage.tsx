@@ -11,6 +11,7 @@ import {
   Info,
   Trash2,
   SlidersHorizontal,
+  Mail,
 } from 'lucide-react';
 import {
   useNotificationsQuery,
@@ -20,9 +21,11 @@ import {
   type NotificationItem,
 } from '../hooks/useNotifications';
 import { NotificationPreferencesModal } from '../components/NotificationPreferencesModal';
+import { EmailHistoryTable } from '@/modules/pdf/components/EmailHistoryTable';
 
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'ALERTS' | 'EMAIL_HISTORY'>('ALERTS');
   const [filterType, setFilterType] = useState<string>('ALL');
   const [readState, setReadState] = useState<string>('ALL');
   const [search, setSearch] = useState<string>('');
@@ -77,15 +80,43 @@ export const NotificationsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-10">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Top Header & Tab Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/60 dark:border-white/10 pb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-heading">
-            Notification Center
+            Notification & Email Center
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Real-time business updates, audit alerts, and team events
+            Real-time business updates, audit alerts, and transactional email dispatch logs
           </p>
+        </div>
+
+        <div className="flex items-center gap-2 bg-gray-100 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10">
+          <button
+            type="button"
+            onClick={() => setActiveTab('ALERTS')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'ALERTS'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 dark:text-gray-400 hover:text-white'
+            }`}
+          >
+            <Bell className="w-4 h-4" />
+            <span>System Alerts</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('EMAIL_HISTORY')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'EMAIL_HISTORY'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 dark:text-gray-400 hover:text-white'
+            }`}
+          >
+            <Mail className="w-4 h-4" />
+            <span>Email History Logs</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-3">
@@ -110,11 +141,15 @@ export const NotificationsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
-      <div className="p-4 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-            {/* Read State Pills */}
+      {activeTab === 'EMAIL_HISTORY' ? (
+        <EmailHistoryTable />
+      ) : (
+        <>
+          {/* Filter Tabs & Search Bar */}
+          <div className="p-4 rounded-[22px] border border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121118]/80 backdrop-blur-xl shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                {/* Read State Pills */}
             <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-100 dark:bg-white/5">
               {['ALL', 'UNREAD', 'READ'].map((st) => (
                 <button
@@ -251,6 +286,8 @@ export const NotificationsPage: React.FC = () => {
           </div>
         )}
       </div>
+        </>
+      )}
 
       {/* Preferences Modal */}
       <NotificationPreferencesModal

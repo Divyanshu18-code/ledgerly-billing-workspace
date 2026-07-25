@@ -37,6 +37,7 @@ model User {
   notifications        Notification[]
   notificationPrefs    NotificationPreference[]
   activityLogs         ActivityLog[]
+  sentEmails           EmailHistory[]        @relation("EmailSentBy")
 }
 
 model Workspace {
@@ -73,6 +74,7 @@ model Workspace {
   notificationPrefs NotificationPreference[]
   activityLogs     ActivityLog[]
   settings         BusinessSettings?
+  emailHistories   EmailHistory[]
 }
 
 model BusinessSettings {
@@ -632,4 +634,22 @@ enum PaymentMethod {
   CHEQUE
   WALLET
   OTHER
+}
+
+model EmailHistory {
+  id           String    @id @default(uuid())
+  workspaceId  String
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  documentType String    // INVOICE, QUOTATION, PAYMENT_REMINDER, THANK_YOU
+  documentId   String
+  recipient    String
+  cc           String?
+  bcc          String?
+  subject      String
+  message      String?
+  status       String    @default("SENT") // SENT, FAILED
+  createdById  String?
+  createdBy    User?     @relation("EmailSentBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
