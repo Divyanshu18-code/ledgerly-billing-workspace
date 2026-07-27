@@ -152,6 +152,101 @@ export class PaymentsController {
       next(error);
     }
   }
+
+  // --- PAYMENT GATEWAY INTEGRATION ENDPOINTS ---
+
+  async createOrder(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const workspaceId = authReq.workspaceId;
+      const { invoiceId, gateway, amount } = req.body;
+
+      if (!workspaceId || !invoiceId || !gateway) {
+        return res.status(400).json({ success: false, message: 'Workspace ID, Invoice ID and Gateway are required' });
+      }
+
+      const { PaymentGatewayService } = await import('./paymentGateway.service');
+      const service = new PaymentGatewayService();
+      const order = await service.createOrder({ workspaceId, invoiceId, gateway, amount });
+
+      return res.json({ success: true, data: order });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async verifyPayment(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const workspaceId = authReq.workspaceId;
+      const { invoiceId, gateway, orderId, paymentId, signature, paymentMethod, amount } = req.body;
+
+      if (!workspaceId || !invoiceId || !gateway || !paymentId) {
+        return res.status(400).json({ success: false, message: 'Invoice ID, Gateway and Payment ID are required' });
+      }
+
+      const { PaymentGatewayService } = await import('./paymentGateway.service');
+      const service = new PaymentGatewayService();
+      const result = await service.verifyPayment({
+        workspaceId,
+        invoiceId,
+        gateway,
+        orderId,
+        paymentId,
+        signature,
+        paymentMethod,
+        amount,
+      });
+
+      return res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getHistory(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const workspaceId = authReq.workspaceId;
+      if (!workspaceId) {
+        return res.status(400).json({ success: false, message: 'Workspace ID required' });
+      }
+
+      const { PaymentGatewayService } = await import('./paymentGateway.service');
+      const service = new PaymentGatewayService();
+      const history = await service.getHistory(workspaceId);
+      const metrics = await service.getMetrics(workspaceId);
+
+      return res.json({ success: true, data: history, metrics });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getReceiptHTML(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const workspaceId = authReq.workspaceId;
+      const id = req.params.id as string;
+
+      if (!workspaceId || !id) {
+        return res.status(400).json({ success: false, message: 'Workspace ID and Transaction ID required' });
+      }
+
+      const { PaymentGatewayService } = await import('./paymentGateway.service');
+      const service = new PaymentGatewayService();
+      const html = await service.generateReceiptHTML(workspaceId, id);
+
+      return res.json({ success: true, data: { html } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async handleWebhook(req: Request, res: Response) {
+    // Gateway webhook listener
+    return res.status(200).json({ received: true });
+  }
 }
 
 export const paymentsController = new PaymentsController();

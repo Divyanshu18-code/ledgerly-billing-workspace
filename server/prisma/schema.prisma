@@ -75,6 +75,7 @@ model Workspace {
   activityLogs     ActivityLog[]
   settings         BusinessSettings?
   emailHistories   EmailHistory[]
+  paymentTransactions PaymentTransaction[]
 }
 
 model BusinessSettings {
@@ -194,6 +195,7 @@ model Client {
   invoices        Invoice[]
   quotations      Quotation[]
   payments        Payment[]
+  paymentTransactions PaymentTransaction[]
 
   @@unique([workspaceId, email])
 }
@@ -262,6 +264,7 @@ model Invoice {
   quotation        Quotation?    @relation(name: "QuotationToInvoiceLink", fields: [quotationId], references: [id], onDelete: SetNull)
   items            InvoiceItem[]
   payments         Payment[]
+  paymentTransactions PaymentTransaction[]
   convertedFrom    Quotation[]   @relation(name: "QuotationConvertedInvoice")
 
   @@unique([workspaceId, invoiceNumber])
@@ -652,4 +655,29 @@ model EmailHistory {
   createdBy    User?     @relation("EmailSentBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model PaymentTransaction {
+  id            String    @id @default(uuid())
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invoiceId     String?
+  invoice       Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  customerId    String?
+  customer      Client?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  gateway       String    // RAZORPAY, STRIPE, MANUAL
+  transactionId String    @unique
+  orderId       String?
+  amount        Decimal   @db.Decimal(10, 2)
+  currency      String    @default("INR")
+  status        String    @default("COMPLETED") // COMPLETED, PENDING, FAILED, REFUNDED
+  paymentMethod String    @default("CARD") // CARD, UPI, NETBANKING, WALLET
+  paymentDate   DateTime  @default(now())
+  receiptUrl    String?
+  failureReason String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, gateway])
 }

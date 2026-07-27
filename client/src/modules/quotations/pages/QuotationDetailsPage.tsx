@@ -144,10 +144,10 @@ export const QuotationDetailsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsPreviewModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
             title="Preview A4 Live PDF Layout"
           >
-            <Eye className="h-3.5 w-3.5" />
+            <Eye className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
             <span>Preview PDF</span>
           </button>
 

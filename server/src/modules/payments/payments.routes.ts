@@ -87,4 +87,21 @@ router.delete(
   paymentsController.deletePayment.bind(paymentsController)
 );
 
+// --- PAYMENT GATEWAY ENDPOINTS ---
+
+// POST /api/v1/payments/create-order
+router.post('/create-order', (req, res, next) => paymentsController.createOrder(req, res, next));
+
+// POST /api/v1/payments/verify
+router.post('/verify', (req, res, next) => paymentsController.verifyPayment(req, res, next));
+
+// POST /api/v1/payments/webhook
+router.post('/webhook', (req, res) => paymentsController.handleWebhook(req, res));
+
+// GET /api/v1/payments/gateway/history
+router.get('/gateway/history', (req, res, next) => paymentsController.getHistory(req, res, next));
+
+// GET /api/v1/payments/gateway/:id/receipt
+router.get('/gateway/:id/receipt', (req, res, next) => paymentsController.getReceiptHTML(req, res, next));
+
 export default router;

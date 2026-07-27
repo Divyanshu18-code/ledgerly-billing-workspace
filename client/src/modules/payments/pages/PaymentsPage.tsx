@@ -25,6 +25,7 @@ import {
 import { usePaymentsQuery, useDeletePaymentMutation } from '../hooks/usePayments';
 import type { PaymentItem } from '../hooks/usePayments';
 import { useWorkspaceData } from '@/modules/workspace/hooks/useWorkspace';
+import { GatewayConfigCards } from '../components/GatewayConfigCards';
 
 export const PaymentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -244,6 +245,12 @@ export const PaymentsPage: React.FC = () => {
           </div>
           <p className="text-xs text-gray-400">Logged payment refunds</p>
         </div>
+      </div>
+
+      {/* Payment Gateway Configurations (Razorpay & Stripe) */}
+      <div className="space-y-3">
+        <h2 className="text-base font-bold text-gray-900 dark:text-white font-heading">Online Payment Gateways</h2>
+        <GatewayConfigCards />
       </div>
 
       {/* Filter & Search Toolbar with Photo 2 Style Horizontal Status Filter Tabs */}

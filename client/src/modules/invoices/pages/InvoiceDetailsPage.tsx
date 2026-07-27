@@ -8,6 +8,9 @@ import {
 import { useWorkspaceData } from '@/modules/workspace/hooks/useWorkspace';
 import { PDFPreviewModal } from '@/modules/pdf/components/PDFPreviewModal';
 import { SendEmailDialog } from '@/modules/pdf/components/SendEmailDialog';
+import { PaymentCheckoutModal } from '@/modules/payments/components/PaymentCheckoutModal';
+import { PaymentSuccessModal } from '@/modules/payments/components/PaymentSuccessModal';
+import { PaymentFailedModal } from '@/modules/payments/components/PaymentFailedModal';
 import {
   ArrowLeft,
   Mail,
@@ -44,6 +47,13 @@ export const InvoiceDetailsPage: React.FC = () => {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState('Modern Glass');
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+
+  // Payment Checkout States
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+  const [isFailedOpen, setIsFailedOpen] = useState(false);
+  const [paymentResult, setPaymentResult] = useState<any>(null);
+  const [failedReason, setFailedReason] = useState<string>('');
 
   const currencySymbol = workspace?.currency === 'USD' ? '$' : '₹';
 
@@ -154,15 +164,27 @@ export const InvoiceDetailsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* All Action Buttons on ONE Single Horizontal Line */}
+        {/* All Action Buttons on ONE Single Horizontal Line - 100% Identical Glassmorphic Styling */}
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto justify-start md:justify-end shrink-0 py-1">
+          {invoice.status !== 'PAID' && (
+            <button
+              type="button"
+              onClick={() => setIsCheckoutOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
+              title="Pay Invoice Online via Razorpay / Stripe"
+            >
+              <CreditCard className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
+              <span>Pay Now</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setIsPreviewModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
             title="Preview A4 Live PDF Layout"
           >
-            <Eye className="h-3.5 w-3.5" />
+            <Eye className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
             <span>Preview PDF</span>
           </button>
 
@@ -171,17 +193,17 @@ export const InvoiceDetailsPage: React.FC = () => {
             onClick={() => setIsEmailModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
           >
-            <Mail className="h-3.5 w-3.5 text-blue-400" />
+            <Mail className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
             <span>Send Email</span>
           </button>
 
           <button
             type="button"
             onClick={handleSendWhatsApp}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition cursor-pointer shrink-0 active:scale-98"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
             title="Share Invoice PDF via WhatsApp"
           >
-            <MessageCircle className="h-3.5 w-3.5" />
+            <MessageCircle className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
             <span>WhatsApp</span>
           </button>
 
@@ -190,7 +212,7 @@ export const InvoiceDetailsPage: React.FC = () => {
             onClick={handleDuplicate}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
           >
-            <Copy className="h-3.5 w-3.5 text-indigo-400" />
+            <Copy className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
             <span>Duplicate</span>
           </button>
 
@@ -199,7 +221,7 @@ export const InvoiceDetailsPage: React.FC = () => {
             onClick={() => navigate(`/invoices/${invoice.id}/edit`)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
           >
-            <Edit3 className="h-3.5 w-3.5 text-emerald-400" />
+            <Edit3 className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
             <span>Edit</span>
           </button>
 
@@ -207,9 +229,9 @@ export const InvoiceDetailsPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate(`/payments/new?invoiceId=${invoice.id}`)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-md shadow-emerald-500/20 transition cursor-pointer shrink-0 active:scale-98"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#1b1928] hover:bg-gray-100 dark:hover:bg-white/10 text-gray-800 dark:text-gray-200 text-xs font-semibold transition cursor-pointer shrink-0"
             >
-              <CreditCard className="h-4 w-4" />
+              <CreditCard className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
               <span>Record Payment</span>
             </button>
           )}
@@ -503,6 +525,36 @@ export const InvoiceDetailsPage: React.FC = () => {
         theme={selectedTheme}
         isOpen={isEmailModalOpen}
         onClose={() => setIsEmailModalOpen(false)}
+      />
+
+      {/* Online Gateway Payment Checkout Modal */}
+      <PaymentCheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        invoice={invoice}
+        onSuccess={(result) => {
+          setPaymentResult(result);
+          setIsSuccessOpen(true);
+        }}
+        onFailed={(reason) => {
+          setFailedReason(reason);
+          setIsFailedOpen(true);
+        }}
+      />
+
+      {/* Payment Success Result Screen */}
+      <PaymentSuccessModal
+        isOpen={isSuccessOpen}
+        onClose={() => setIsSuccessOpen(false)}
+        result={paymentResult}
+      />
+
+      {/* Payment Failed Result Screen */}
+      <PaymentFailedModal
+        isOpen={isFailedOpen}
+        onClose={() => setIsFailedOpen(false)}
+        onRetry={() => setIsCheckoutOpen(true)}
+        reason={failedReason}
       />
     </div>
   );
