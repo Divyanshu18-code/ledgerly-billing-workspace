@@ -139,7 +139,7 @@ export function generatePasswordResetHtml(resetLink: string, userFirstName: stri
         </div>
 
         <p class="message">
-          This password reset link will expire in <strong>60 minutes</strong>.
+          This password reset link will expire in <strong>10 minutes</strong>.
         </p>
 
         <div class="url-box">

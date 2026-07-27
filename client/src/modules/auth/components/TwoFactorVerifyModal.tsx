@@ -20,15 +20,13 @@ export const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [timer, setTimer] = useState(60);
 
   useEffect(() => {
-    let interval: any = null;
-    if (isOpen && timer > 0) {
-      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+    if (isOpen) {
+      setOtp(['', '', '', '', '', '']);
+      setError(null);
     }
-    return () => clearInterval(interval);
-  }, [isOpen, timer]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -77,35 +75,35 @@ export const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div className="bg-[#12101b]/95 border border-white/15 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-white space-y-6">
         
-        {/* Header Icon */}
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-inner">
-            <ShieldCheck className="w-8 h-8" />
+        {/* Header Shield Icon */}
+        <div className="flex justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-400 shadow-inner">
+            <ShieldCheck className="w-7 h-7" />
           </div>
         </div>
 
-        {/* Title */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold tracking-tight text-white mb-2">2-Step Verification</h2>
-          <p className="text-sm text-slate-400">
+        {/* Title & Email Subtitle */}
+        <div className="text-center space-y-1.5">
+          <h2 className="text-2xl font-black tracking-tight text-white font-heading">2-Step Verification</h2>
+          <p className="text-xs text-gray-400 leading-relaxed font-medium">
             Enter the 6-digit security code sent to your email <br />
-            <span className="font-semibold text-blue-400">{email}</span>
+            <span className="font-bold text-violet-400 break-all">{email}</span>
           </p>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+          <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-medium text-center">
             {error}
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <div className="flex justify-center gap-2 sm:gap-3 mb-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex justify-center gap-2 sm:gap-2.5">
             {otp.map((digit, idx) => (
               <input
                 key={idx}
@@ -115,7 +113,7 @@ export const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
                 value={digit}
                 onChange={(e) => handleChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
-                className="w-11 h-13 sm:w-12 sm:h-14 text-center text-2xl font-bold bg-slate-950 border border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-white"
+                className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold bg-[#1a1727] border border-white/10 rounded-xl focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 outline-none transition-all text-white font-mono"
                 autoFocus={idx === 0}
               />
             ))}
@@ -124,34 +122,34 @@ export const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
           <button
             type="submit"
             disabled={isSubmitting || otp.join('').length !== 6}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 transition-all mb-4 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-violet-600/30 transition cursor-pointer disabled:opacity-50 active:scale-98"
           >
             {isSubmitting ? (
-              <RefreshCw className="w-5 h-5 animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                Verify & Continue
+                <span>Verify & Continue</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        {/* Footer actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-800 text-xs text-slate-400">
+        {/* Footer Actions */}
+        <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs text-gray-400 font-medium">
           <button
+            type="button"
             onClick={onCancel}
             className="hover:text-white transition-colors cursor-pointer"
           >
             Back to Login
           </button>
           
-          <div className="flex items-center gap-1">
-            <KeyRound className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center gap-1.5 text-gray-500 text-[11px]">
+            <KeyRound className="w-3.5 h-3.5 text-gray-400" />
             <span>Secured by Ledgerly Auth</span>
           </div>
         </div>
-
       </div>
     </div>
   );

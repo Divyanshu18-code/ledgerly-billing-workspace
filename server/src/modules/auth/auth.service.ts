@@ -315,7 +315,7 @@ console.log('AuthService.login - retrieved user:', { id: user?.id, email: user?.
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    const resetTokenExp = new Date(Date.now() + 3600000); // 1 hour expiry
+    const resetTokenExp = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
     await authRepository.updateUser(user.id, {
       resetToken: hashedResetToken,

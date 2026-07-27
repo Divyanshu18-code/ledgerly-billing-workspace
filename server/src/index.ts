@@ -26,11 +26,14 @@ if (process.env.NODE_ENV === 'production') {
 
 import { v4 as uuidv4 } from 'uuid';
 
-// Request ID middleware – adds a unique ID to each request for structured logging
+// Security Headers & Request ID middleware
 export const requestIdMiddleware = (req: any, res: any, next: any) => {
   const requestId = uuidv4();
   req.id = requestId;
   res.setHeader('X-Request-ID', requestId);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
   next();
 };
 import express from 'express';
@@ -53,10 +56,12 @@ import { errorHandler } from './middlewares/error.middleware';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use(requestIdMiddleware);
+
 // Enable Outgoing Credentials for Secure CORS Session Cookies Handshakes
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://localhost:3000'],
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-workspace-id'],
