@@ -10,7 +10,7 @@ import { NotFoundPage } from '@/components/common/NotFoundPage';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { ApiErrorBoundary } from '@/components/common/ApiErrorBoundary';
 
-import { Bot, ShieldCheck, User } from 'lucide-react';
+import { Bot, ShieldCheck } from 'lucide-react';
 
 // Lazy Loaded Page Components for Maximum Performance
 const LoginPage = lazy(() => import('@/modules/auth/pages/LoginPage'));
@@ -24,6 +24,7 @@ const ProductsPage = lazy(() => import('@/modules/products/pages/ProductsPage'))
 const DashboardPage = lazy(() => import('@/modules/dashboard/pages/DashboardPage'));
 const WorkspacePage = lazy(() => import('@/modules/workspace/pages/WorkspacePage'));
 const AcceptInvitationPage = lazy(() => import('@/modules/workspace/pages/AcceptInvitationPage'));
+const ProfilePage = lazy(() => import('@/modules/profile/pages/ProfilePage'));
 
 // Named Exports Lazy Wrappers
 const QuotationsPage = lazy(() => import('@/modules/quotations/pages/QuotationsPage').then((m) => ({ default: m.QuotationsPage })));
@@ -147,17 +148,7 @@ export const AppRoutes: React.FC = () => {
                     />
                   }
                 />
-                <Route
-                  path="/profile"
-                  element={
-                    <ComingSoon
-                      icon={User}
-                      title="Account Profile"
-                      description="Modify your personal profile details, change security passwords, setup 2FA tokens, and customize display names."
-                      breadcrumbs={['Account', 'Profile']}
-                    />
-                  }
-                />
+                <Route path="/profile" element={<ProfilePage />} />
               </Route>
 
               <Route

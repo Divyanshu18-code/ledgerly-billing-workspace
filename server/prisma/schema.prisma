@@ -23,12 +23,44 @@ model User {
   loginAttempts        Int                   @default(0)
   twoFactorOtp         String?
   twoFactorOtpExp      DateTime?
+  twoFactorEnabled     Boolean               @default(false)
+  avatar               String?
+  phone                String?
+  displayName          String?
+  jobTitle             String?
+  department           String?
+  bio                  String?
+  dateOfBirth          DateTime?
+  gender               String?
+  address              String?
+  city                 String?
+  state                String?
+  country              String?               @default("India")
+  postalCode           String?
+  timezone             String?               @default("UTC")
+  language             String?               @default("en")
+  theme                String?               @default("system")
+  fontSize             String?               @default("medium")
+  compactMode          Boolean               @default(false)
+  lastLogin            DateTime?
+  emailNotifications   Boolean               @default(true)
+  pushNotifications    Boolean               @default(true)
+  invoiceNotifications Boolean               @default(true)
+  paymentNotifications Boolean               @default(true)
+  securityAlerts       Boolean               @default(true)
+  marketingEmails      Boolean               @default(false)
+  profileVisibility    String                @default("public")
+  showEmail            Boolean               @default(true)
+  showPhone            Boolean               @default(true)
+  activityVisibility   Boolean               @default(true)
   auditLogs            AuditLog[]
   createdClients       Client[]              @relation("ClientCreatedBy")
   createdWorkspaces    Workspace[]           @relation("WorkspaceCreatedBy")
   sentInvitations      WorkspaceInvitation[] @relation("InvitedBy")
   workspaceMembers     WorkspaceMember[]
   sessions             Session[]
+  userSessions         UserSession[]
+  loginHistories       LoginHistory[]
   createdProducts      Product[]             @relation("ProductCreatedBy")
   createdQuotations     Quotation[]           @relation("QuotationCreatedBy")
   createdInvoices       Invoice[]             @relation("InvoiceCreatedBy")
@@ -680,4 +712,37 @@ model PaymentTransaction {
 
   @@index([workspaceId, status])
   @@index([workspaceId, gateway])
+}
+
+model UserSession {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device      String   @default("Unknown Device")
+  browser     String   @default("Unknown Browser")
+  os          String   @default("Unknown OS")
+  ipAddress   String   @default("127.0.0.1")
+  location    String?  @default("Localhost")
+  loginTime   DateTime @default(now())
+  lastActive  DateTime @default(now())
+  isCurrent   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model LoginHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device    String   @default("Unknown Device")
+  browser   String   @default("Unknown Browser")
+  os        String   @default("Unknown OS")
+  ipAddress String   @default("127.0.0.1")
+  location  String?  @default("Localhost")
+  status    String   @default("SUCCESS") // SUCCESS, FAILED
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

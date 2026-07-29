@@ -50,6 +50,7 @@ import reportsRoutes from './modules/reports/reports.routes';
 import notificationsRoutes from './modules/notifications/notifications.routes';
 import activityRoutes from './modules/activity/activity.routes';
 import settingsRoutes from './modules/settings/settings.routes';
+import profileRoutes from './modules/profile/profile.routes';
 import pdfRoutes from './modules/pdf/pdf.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
@@ -83,6 +84,7 @@ app.use('/api/v1/reports', reportsRoutes);
 app.use('/api/v1/notifications', notificationsRoutes);
 app.use('/api/v1/activity', activityRoutes);
 app.use('/api/v1/settings', settingsRoutes);
+app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/pdf', pdfRoutes);
 
 app.get('/api/health', (req, res) => {
