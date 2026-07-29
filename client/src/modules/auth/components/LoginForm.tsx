@@ -214,9 +214,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onNavigateToReg
 
         {/* Links */}
         <div className="flex flex-col items-center gap-2 text-xs pt-2">
-          <Link to="/forgot-password" className="text-gray-400 hover:text-violet-400 transition font-medium">
-            Forgot your password? <span className="underline text-violet-400">Reset Your Password</span>
-          </Link>
+          <div className="text-gray-400 font-medium">
+            Forgot your password?{' '}
+            <Link to="/forgot-password" className="text-violet-400 hover:text-violet-300 font-bold underline transition cursor-pointer">
+              Reset Your Password
+            </Link>
+          </div>
 
           <div className="text-gray-400 font-medium pt-1">
             Don't have an account?{' '}

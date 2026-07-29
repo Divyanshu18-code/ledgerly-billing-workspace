@@ -73,6 +73,9 @@ export const AppRoutes: React.FC = () => {
         <ApiErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>
+              {/* Root Redirect Route */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
               {/* Public Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
